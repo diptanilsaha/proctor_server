@@ -12,6 +12,12 @@ timestamp = Annotated[
     mapped_column(nullable=False, server_default=func.CURRENT_TIMESTAMP()),
 ]
 
+class UserType:
+    ADMIN = 'Administrator'
+    LAB_MOD = 'Lab Moderator'
+
+
+
 class Role(db.Model):
     __tablename__ = "role"
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
@@ -24,7 +30,7 @@ class Role(db.Model):
 
     @staticmethod
     def insert_roles():
-        roles = ['Administrator', 'Lab Moderator']
+        roles = [UserType.ADMIN, UserType.LAB_MOD]
         for r in roles:
             role = db.session.query(Role).filter_by(name=r).first()
             if role is None:
@@ -33,7 +39,7 @@ class Role(db.Model):
             db.session.commit()
 
     def is_admin(self):
-        return 'Administrator' == self.name
+        return UserType.ADMIN == self.name
 
     def __repr__(self):
         return '<Role %r>' % self.name
