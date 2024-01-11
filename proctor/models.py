@@ -1,10 +1,16 @@
 from typing import List
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from proctor import db
+import datetime
+from typing_extensions import Annotated
 
+timestamp = Annotated[
+    datetime.datetime,
+    mapped_column(nullable=False, server_default=func.CURRENT_TIMESTAMP()),
+]
 
 class Role(db.Model):
     __tablename__ = "role"
@@ -42,6 +48,8 @@ class User(UserMixin, db.Model):
     password_hash: Mapped[str] = mapped_column(db.String(128))
     role_id: Mapped[int] = mapped_column(ForeignKey("role.id"))
     role: Mapped["Role"] = relationship(back_populates="users")
+    lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
+    lab: Mapped["Lab"] = relationship(back_populates="user")
 
     def __repr__(self):
         return '<User %r>' % self.id
@@ -52,3 +60,14 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+
+
+class Lab(db.Model):
+    __tablename__ = "lab"
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    labname: Mapped[str] = mapped_column(db.String(40), unique=True, nullable=False)
+    user: Mapped["User"] = relationship(back_populates="lab")
+    created_at: Mapped[timestamp]
+
+    def __repr__(self):
+        return '<Lab %r>' % self.labname
