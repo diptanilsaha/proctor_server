@@ -6,11 +6,16 @@ from flask_login import UserMixin
 from proctor import db
 import datetime
 from typing_extensions import Annotated
+from enum import Enum
+import uuid
 
 timestamp = Annotated[
     datetime.datetime,
     mapped_column(nullable=False, server_default=func.CURRENT_TIMESTAMP()),
 ]
+
+def generate_uuid():
+    return uuid.uuid4().hex
 
 class UserType:
     ADMIN = 'Administrator'
@@ -85,10 +90,35 @@ class Lab(db.Model):
 
 class Client(db.Model):
     __tablename__ = "client"
-    id: Mapped[str] = mapped_column(db.String(32), Uuid, primary_key=True)
+    id: Mapped[str] = mapped_column(db.String(32), primary_key=True, default=generate_uuid)
     clientname: Mapped[str] = mapped_column(db.String(40), unique=True, nullable=False)
     lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
     lab: Mapped["Lab"] = relationship(back_populates="clients")
     created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     created_by: Mapped["User"] = relationship(back_populates="clients_created")
     created_at: Mapped[timestamp]
+    client_sessions: Mapped[List["ClientSession"]] = relationship(back_populates="client")
+
+    def __repr__(self):
+        return '<Client %r>' % self.clientname
+
+
+
+class ClientSessionStatus(Enum):
+    ACTIVE = 'Active'
+    TERMINATE = 'Terminate'        # implies, Client Session is allowed to Terminate.
+    TERMINATED = 'Terminated'      # implies, Client Session is Terminated.
+    DISCONNECTED = 'Disconnected'  # implies, Client Session got disconnected without being Terminated.
+
+
+
+class ClientSession(db.Model):
+    __tablename__ = "clientSession"
+    id: Mapped[str] = mapped_column(db.String(32), primary_key=True, default=generate_uuid)
+    session_ip_addr: Mapped[str] = mapped_column(db.String(15), nullable=False)
+    status: Mapped[ClientSessionStatus]
+    session_start_time: Mapped[timestamp]
+    session_end_time: Mapped[datetime.datetime] = mapped_column(db.DateTime, nullable=True)
+    client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
+    client: Mapped["Client"] = relationship(back_populates="client_sessions")
+
