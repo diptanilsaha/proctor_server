@@ -1,5 +1,5 @@
 from typing import List
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import ForeignKey, func, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
@@ -56,6 +56,7 @@ class User(UserMixin, db.Model):
     role: Mapped["Role"] = relationship(back_populates="users")
     lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
     lab: Mapped["Lab"] = relationship(back_populates="user")
+    clients_created: Mapped[List["Client"]] = relationship(back_populates="created_by")
     created_at: Mapped[timestamp]
 
     def __repr__(self):
@@ -74,7 +75,20 @@ class Lab(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     labname: Mapped[str] = mapped_column(db.String(40), unique=True, nullable=False)
     user: Mapped["User"] = relationship(back_populates="lab")
+    clients: Mapped[List["Client"]] = relationship(back_populates="lab")
     created_at: Mapped[timestamp]
 
     def __repr__(self):
         return '<Lab %r>' % self.labname
+
+
+
+class Client(db.Model):
+    __tablename__ = "client"
+    id: Mapped[str] = mapped_column(db.String(32), Uuid, primary_key=True)
+    clientname: Mapped[str] = mapped_column(db.String(40), unique=True, nullable=False)
+    lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
+    lab: Mapped["Lab"] = relationship(back_populates="clients")
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    created_by: Mapped["User"] = relationship(back_populates="clients_created")
+    created_at: Mapped[timestamp]
