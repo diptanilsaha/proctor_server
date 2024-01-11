@@ -50,6 +50,7 @@ class User(UserMixin, db.Model):
     role: Mapped["Role"] = relationship(back_populates="users")
     lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
     lab: Mapped["Lab"] = relationship(back_populates="user")
+    created_at: Mapped[timestamp]
 
     def __repr__(self):
         return '<User %r>' % self.id
