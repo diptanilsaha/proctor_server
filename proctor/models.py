@@ -112,21 +112,17 @@ class Client(db.Model):
 
 
 
-class ClientSessionStatus(Enum):
-    ACTIVE = 'Active'
-    TERMINATE = 'Terminate'        # implies, Client Session is allowed to Terminate.
-    TERMINATED = 'Terminated'      # implies, Client Session is Terminated.
-    DISCONNECTED = 'Disconnected'  # implies, Client Session got disconnected without being Terminated.
-
-
-
 class ClientSession(db.Model):
     """ClientSession Model."""
     __tablename__ = "clientSession"
     id: Mapped[str] = mapped_column(db.String(32), primary_key=True, default=generate_uuid)
     session_ip_addr: Mapped[str] = mapped_column(db.String(15), nullable=False)
-    status: Mapped[ClientSessionStatus]
+    is_active: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=True)
+    can_terminate: Mapped[bool] = mapped_column(db.Booelan, nullable=False, default=False)
     session_start_time: Mapped[TimeStamp]
     session_end_time: Mapped[datetime.datetime] = mapped_column(db.DateTime, nullable=True)
     client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
     client: Mapped["Client"] = relationship(back_populates="client_sessions")
+
+    def __repr__(self):
+        return f"<ClientSession {self.id} of {self.client}>"
