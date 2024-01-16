@@ -59,6 +59,7 @@ class User(UserMixin, db.Model):
     """User Model."""
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(db.String(40), nullable=False)
     username: Mapped[str] = mapped_column(db.String(10), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(db.String(128))
     role_id: Mapped[int] = mapped_column(ForeignKey("role.id"))
