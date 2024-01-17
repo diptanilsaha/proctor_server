@@ -3,7 +3,7 @@
 import uuid
 import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -66,6 +66,9 @@ class User(UserMixin, db.Model):
     lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
     lab: Mapped["Lab"] = relationship(back_populates="user")
     clients_created: Mapped[List["Client"]] = relationship(back_populates="created_by")
+    cs_tl_attented: Mapped[List["ClientSessionTLStatus"]] = relationship(
+        back_populates="attended_by"
+    )
     created_at: Mapped[TimeStamp]
 
     def __repr__(self):
@@ -121,8 +124,38 @@ class ClientSession(db.Model):
     can_terminate: Mapped[bool] = mapped_column(db.Booelan, nullable=False, default=False)
     session_start_time: Mapped[TimeStamp]
     session_end_time: Mapped[datetime.datetime] = mapped_column(db.DateTime, nullable=True)
+    session_timeline: Mapped[List["ClientSessionTimeline"]] = relationship(back_populates="client_session")
     client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
     client: Mapped["Client"] = relationship(back_populates="client_sessions")
 
     def __repr__(self):
         return f"<ClientSession {self.id} of {self.client}>"
+
+
+
+class ClientSessionTLStatus(Enum):
+    """ClientSession Timeline Status"""
+    CC = "Client Connected"
+    UC = "USB Device Connected"
+    UD = "USB Device Disconnected"
+    CA = "Candidate Assigned"
+    CLI = "Candidate Logged In"
+    CLO = "Candidate Logged Out"
+    TR = "Termination Requested"
+    CDWOTR = "Client Disconnected before Terminate Request"
+    CDWRT = "Client Disconnected after Terminate Request"
+
+
+
+class ClientSessionTimeline(db.Model):
+    """ClientSessionTimeline Model."""
+    __tablename__ = "clientSessionTimeline"
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    status: Mapped[ClientSessionTLStatus]
+    requires_attention: Mapped[bool] = mapped_column(db.Boolean, default=False)
+    details: Mapped[str] = mapped_column(db.Text, nullable=False)
+    client_session_id: Mapped[str] = mapped_column(ForeignKey("clientSession.id"))
+    client_session: Mapped["ClientSession"] = relationship(back_populates="session_timeline")
+    attended_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user.id"))
+    attended_by: Mapped[Optional["User"]] = relationship(back_populates="cs_tl_attended")
+    timestamp: Mapped[TimeStamp]
