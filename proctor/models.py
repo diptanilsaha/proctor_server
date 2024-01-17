@@ -69,9 +69,13 @@ class User(UserMixin, db.Model):
     lab: Mapped["Lab"] = relationship(back_populates="user")
     clients_created: Mapped[List["Client"]] = relationship(
         back_populates="created_by")
-    cs_tl_attented: Mapped[List["ClientSessionTLStatus"]] = relationship(
+    cs_tl_attended: Mapped[List["ClientSessionTimeline"]] = relationship(
         back_populates="attended_by"
     )
+    assessments: Mapped[List["Assessment"]] = relationship(
+        back_populates="created_by")
+    assessment_tl: Mapped[List["AssessmentTimeline"]
+                          ] = relationship(back_populates="atl_created_by")
     created_at: Mapped[TimeStamp]
 
     def __repr__(self):
@@ -94,6 +98,8 @@ class Lab(db.Model):
         db.String(40), unique=True, nullable=False)
     user: Mapped["User"] = relationship(back_populates="lab")
     clients: Mapped[List["Client"]] = relationship(back_populates="lab")
+    assessments: Mapped[List["Assessment"]
+                        ] = relationship(back_populates="lab")
     created_at: Mapped[TimeStamp]
 
     def __repr__(self):
@@ -174,3 +180,43 @@ class ClientSessionTimeline(db.Model):
     attended_by: Mapped[Optional["User"]] = relationship(
         back_populates="cs_tl_attended")
     timestamp: Mapped[TimeStamp]
+
+
+class AssessmentStatus(Enum):
+    """Assessment Status Enum."""
+    INIT = "initial"
+    REG = "registration"
+    ACTIVE = "active"
+    BUFFER = "buffer"
+    COMPLETE = "complete"
+
+
+class Assessment(db.Model):
+    """Assessment Model."""
+    __tablename__ = "assessment"
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(db.String(50), nullable=False)
+    description: Mapped[str] = mapped_column(db.Text)
+    media_url: Mapped[str] = mapped_column(db.String(32))
+    current_status: Mapped[AssessmentStatus]
+    created_at: Mapped[TimeStamp]
+    lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
+    lab: Mapped["Lab"] = relationship(back_populates="assessments")
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    created_by: Mapped["User"] = relationship(back_populates="assessments")
+    assessment_timeline: Mapped[List["AssessmentTimeline"]] = relationship(
+        back_populates="assessment")
+
+
+class AssessmentTimeline(db.Model):
+    """Assessment Timline Model."""
+    __tablename__ = "assessmentTimeLine"
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    status: Mapped[AssessmentStatus]
+    timestamp: Mapped[TimeStamp]
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessment.id"))
+    assessment: Mapped["Assessment"] = relationship(
+        back_populates="assessment_timeline")
+    atl_created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    atl_created_by: Mapped["User"] = relationship(
+        back_populates="assessment_tl")
