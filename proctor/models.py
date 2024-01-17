@@ -65,8 +65,8 @@ class User(UserMixin, db.Model):
     password_hash: Mapped[str] = mapped_column(db.String(128))
     role_id: Mapped[int] = mapped_column(ForeignKey("role.id"))
     role: Mapped["Role"] = relationship(back_populates="users")
-    lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
-    lab: Mapped["Lab"] = relationship(back_populates="user")
+    lab_id: Mapped[Optional[int]] = mapped_column(ForeignKey("lab.id"))
+    lab: Mapped[Optional["Lab"]] = relationship(back_populates="user")
     clients_created: Mapped[List["Client"]] = relationship(
         back_populates="created_by")
     cs_tl_attended: Mapped[List["ClientSessionTimeline"]] = relationship(
