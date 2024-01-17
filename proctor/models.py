@@ -132,7 +132,7 @@ class ClientSession(db.Model):
     is_active: Mapped[bool] = mapped_column(
         db.Boolean, nullable=False, default=True)
     can_terminate: Mapped[bool] = mapped_column(
-        db.Booelan, nullable=False, default=False)
+        db.Boolean, nullable=False, default=False)
     session_start_time: Mapped[TimeStamp]
     session_end_time: Mapped[datetime.datetime] = mapped_column(
         db.DateTime, nullable=True)
