@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from typing_extensions import Annotated
-from proctor import db
+from .database import db
 
 
 TimeStamp = Annotated[

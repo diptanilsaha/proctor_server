@@ -2,7 +2,7 @@
 from flask_login import login_required
 from flask import render_template
 
-from proctor import db
+from proctor.database import db
 from proctor.labs.base import labs_bp
 from proctor.models import Lab
 from proctor.decorators import admin_required
