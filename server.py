@@ -9,7 +9,9 @@ from proctor.models import (
     Client,
     ClientSession,
     ClientSessionTimeline,
-    AssessmentTimeline)
+    AssessmentTimeline,
+    Candidate,
+    CandidateTimeline,)
 
 app = create_app()
 
@@ -25,5 +27,7 @@ def make_shell_context():
         'Client': Client,
         'ClientSession': ClientSession,
         'ClientSessionTimeline': ClientSessionTimeline,
-        'AssessmentTimeline': AssessmentTimeline
+        'AssessmentTimeline': AssessmentTimeline,
+        'Candidate': Candidate,
+        'CandidateTimeline': CandidateTimeline,
     }

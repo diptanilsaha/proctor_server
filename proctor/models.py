@@ -4,7 +4,7 @@ import uuid
 import datetime
 from enum import Enum
 from typing import List, Optional
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import ForeignKey, func, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
@@ -76,6 +76,8 @@ class User(UserMixin, db.Model):
         back_populates="created_by")
     assessment_tl: Mapped[List["AssessmentTimeline"]
                           ] = relationship(back_populates="atl_created_by")
+    cs_verifier: Mapped[List["Candidate"]] = relationship(
+        back_populates="sub_verified_by")
     created_at: Mapped[TimeStamp]
 
     def __repr__(self):
@@ -146,6 +148,10 @@ class ClientSession(db.Model):
         back_populates="client_session")
     client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
     client: Mapped["Client"] = relationship(back_populates="client_sessions")
+    candidate_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("candidate.id"))
+    candidate: Mapped[Optional["Candidate"]] = relationship(
+        back_populates="client_sessions")
 
     def __repr__(self):
         return f"<ClientSession {self.id} of {self.client}>"
@@ -159,6 +165,7 @@ class ClientSessionTLStatus(Enum):
     CA = "Candidate Assigned"
     CLI = "Candidate Logged In"
     CLO = "Candidate Logged Out"
+    CRA = "Candidate Re-Assigned"
     TR = "Termination Requested"
     CDWOTR = "Client Disconnected before Terminate Request"
     CDWRT = "Client Disconnected after Terminate Request"
@@ -204,6 +211,8 @@ class Assessment(db.Model):
     lab: Mapped["Lab"] = relationship(back_populates="assessments")
     created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     created_by: Mapped["User"] = relationship(back_populates="assessments")
+    candidates: Mapped[List["Candidate"]] = relationship(
+        back_populates="assessment")
     assessment_timeline: Mapped[List["AssessmentTimeline"]] = relationship(
         back_populates="assessment")
 
@@ -220,3 +229,53 @@ class AssessmentTimeline(db.Model):
     atl_created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     atl_created_by: Mapped["User"] = relationship(
         back_populates="assessment_tl")
+
+
+class CandidateStatus(Enum):
+    """
+    Candidate Status Enum.
+
+    PENDING - Candidate Submission is Pending.
+    SUBMITTED - Candidate Submitted his Work.
+    ACCEPTED - Candidate's Submission Accepted.
+    REJECTED - Candidate's Submission Rejected.
+    """
+    PENDING = "pending"
+    SUBMITTED = "submitted"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
+
+class Candidate(db.Model):
+    """Candidate Model."""
+    __tablename__ = "candidate"
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(db.String(40))
+    roll: Mapped[str] = mapped_column(db.String(20))
+    submission_media_url: Mapped[str] = mapped_column(db.String(50))
+    current_status: Mapped[CandidateStatus]
+    sub_verified_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    sub_verified_by: Mapped["User"] = relationship(
+        back_populates="cs_verifier")
+    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessment.id"))
+    assessment: Mapped["Assessment"] = relationship(
+        back_populates="candidates")
+    client_sessions: Mapped[List["ClientSession"]
+                            ] = relationship(back_populates="candidate")
+    timeline: Mapped["CandidateTimeline"] = relationship(
+        back_populates="candidate")
+
+    __table_args__ = (
+        UniqueConstraint("roll", "assessment_id", name="assessment_roll_uidx"),
+    )
+
+
+class CandidateTimeline(db.Model):
+    """Candidate Timeline Model."""
+    __tablename__ = "candidateTimeline"
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    status: Mapped[CandidateStatus]
+    details: Mapped[str] = mapped_column(db.Text)
+    timestamp: Mapped[TimeStamp]
+    candidate_id: Mapped[int] = mapped_column(ForeignKey("candidate.id"))
+    candidate: Mapped["Candidate"] = relationship(back_populates="timeline")
