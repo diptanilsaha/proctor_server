@@ -1,12 +1,14 @@
 """Proctor Auth - Login View"""
 from flask import flash, redirect, url_for, render_template
-from flask_login import login_user
+from flask_login import login_user, current_user
 from proctor.auth.base import auth_bp
 from proctor.auth.forms import LoginForm
 
 @auth_bp.route("/login/", methods=["GET", "POST"])
 def login():
-    """Login Method."""
+    """Login User."""
+    if current_user.is_authenticated:
+        return redirect(url_for('labs.index'))
     form = LoginForm()
     if form.validate_on_submit():
         user = form.get_user()

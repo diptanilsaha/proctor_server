@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -24,5 +24,48 @@
         {{ form.password }}
         <input type="submit" value="submit">
     </form>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}"></link>
+    <link rel="stylesheet" href="{{ url_for('static', filename='loginStyle.css') }}">
+    <title>login - Proctor</title>
+</head>
+<body class="vh-100 container d-flex justify-content-center align-items-center">
+    <main class="form-login w-100 m-auto">
+        <form action="{{ url_for('auth.login') }}" method="post">
+            {{ form.csrf_token }}
+            <h1 class="mb-3 text-center"><strong>login</strong></h1>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <div class="mb-3">
+                {{ form.username.label(class_="form-label") }}
+                {{ form.username(class_="shadow-sm w-100 form-control-lg", placeholder="lab1") }}
+            </div>
+            <div class="mb-4">
+                {{ form.password.label(class_="form-label") }}
+                {{ form.password(class_="shadow-sm w-100 form-control-lg", placeholder="password") }}
+            </div>
+            <div class="w-100 d-flex justify-content-center mb-4">
+                <button class="btn btn-dark" type="submit"><strong>log in</strong></button>
+            </div>
+            <div class="text-center">
+                <p>&copy;2024, Proctor</p>
+            </div>
+        </form>
+    </main>
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

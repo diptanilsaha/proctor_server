@@ -7,8 +7,8 @@ from proctor.models import User
 
 class LoginForm(FlaskForm):
     """Proctor Login Form."""
-    username = StringField(validators=[validators.InputRequired()])
-    password = PasswordField(validators=[validators.InputRequired()])
+    username = StringField('username', validators=[validators.InputRequired()])
+    password = PasswordField('password', validators=[validators.InputRequired()])
 
     def get_user(self):
         """Return User from the given Username."""
