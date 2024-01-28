@@ -1,40 +1,6 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-</head>
-<body>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class=flashes>
-        {% for message in messages %}
-        <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% endwith %}
-    <form action="{{ url_for('auth.login') }}" method="post">
-        {{ form.csrf_token }}
-        {{ form.username.label }}
-        {{ form.username }}
-        <br>
-        {{ form.password.label }}
-        {{ form.password }}
-        <input type="submit" value="submit">
-    </form>
-</body>
-</html> -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}"></link>
-    <link rel="stylesheet" href="{{ url_for('static', filename='loginStyle.css') }}">
-    <title>login - Proctor</title>
-</head>
+{% extends 'base.html' %}
+
+{% block body %}
 <body class="vh-100 container d-flex justify-content-center align-items-center">
     <main class="form-login w-100 m-auto">
         <form action="{{ url_for('auth.login') }}" method="post">
@@ -68,4 +34,4 @@
     </main>
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 </body>
-</html>
+{% endblock %}

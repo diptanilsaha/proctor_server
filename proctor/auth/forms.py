@@ -14,4 +14,4 @@ class LoginForm(FlaskForm):
         """Return User from the given Username."""
         return db.session.execute(
             db.select(User).filter_by(username=self.username.data)
-        ).scalar_one()
+        ).scalar_one_or_none()
