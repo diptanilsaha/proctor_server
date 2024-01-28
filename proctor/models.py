@@ -4,7 +4,7 @@ import uuid
 import datetime
 from enum import Enum
 from typing import List, Optional
-from sqlalchemy import ForeignKey, func, UniqueConstraint
+from sqlalchemy import ForeignKey, func, UniqueConstraint, desc
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
@@ -137,8 +137,9 @@ class Client(db.Model):
     created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     created_by: Mapped["User"] = relationship(back_populates="clients_created")
     created_at: Mapped[TimeStamp]
-    client_sessions: Mapped[List["ClientSession"]
-                            ] = relationship(back_populates="client")
+    client_sessions: Mapped[List["ClientSession"]] = relationship(
+        back_populates="client", order_by=desc("ClientSession.session_start_time")
+    )
 
     def __repr__(self):
         return f"<Client f{self.clientname}>"
@@ -158,7 +159,7 @@ class ClientSession(db.Model):
         db.Boolean, nullable=False, default=False)
     session_start_time: Mapped[TimeStamp]
     session_end_time: Mapped[datetime.datetime] = mapped_column(
-        db.DateTime, nullable=True)
+        db.DateTime, nullable=True, server_default=func.CURRENT_TIMESTAMP())
     session_timeline: Mapped[List["ClientSessionTimeline"]] = relationship(
         back_populates="client_session")
     client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
