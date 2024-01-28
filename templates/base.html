@@ -4,13 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}"></link>
-    <link rel="stylesheet" href="{{ url_for('static', filename='loginStyle.css') }}">
+    {% block stylesheets %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='labs.css') }}">
+    {% endblock %}
     <title>{% block title %}{{ title }} | Proctor{% endblock %}</title>
 </head>
 {% block body %}
 <body>
-    {% block navbar %}{% endblock %}
-    {% block main %}{% endblock %}
+    {% block content %}
+    <div class="d-none d-xl-block">
+        <div class="d-flex flex-nowrap">
+            <!-- sidebar -->
+            <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark sidebar">
+                <a href="#" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                    <span class="fs-4"><strong>Proctor</strong></span>
+                </a>
+                <hr class="mt-2">
+                <ul class="nav nav-pills flex-column mb-auto">
+                    {% if current_user.is_admin %}
+                    <li class="nav-item my-1">
+                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'labs' }}" aria-current="page">
+                            <img class="pe-none me-2" src="{{ url_for('static', filename='icons/lan.svg') }}" width="24" height="24">
+                            <span class="h5 mb-0">Labs</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item my-1">
+                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'labs' }}" aria-current="page">
+                            <img class="pe-none me-2" src="{{ url_for('static', filename='icons/lan.svg') }}" width="24" height="24">
+                            <span class="h5 mb-0">Clients</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item my-1">
+                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'assessments' }}">
+                            <img class="pe-none me-2" src="{{ url_for('static', filename='icons/assignment.svg') }}" width="24" height="24">
+                            <span class="h5 mb-0">Assessments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item my-1">
+                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'submissions' }}">
+                            <img class="pe-none me-2" src="{{ url_for('static', filename='icons/assignment_turned_in.svg') }}" width="24" height="24">
+                            <span class="h5 mb-0">Submissions</span>
+                        </a>
+                    </li>
+                    <li class="nav-item my-1">
+                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'monitor' }}">
+                            <img class="pe-none me-2" src="{{ url_for('static', filename='icons/sensor.svg') }}" width="24" height="24">
+                            <span class="h5 mb-0">Monitor</span>
+                        </a>
+                    </li>
+                </ul>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center mx-2 mb-2">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <strong>admin</strong>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Sign out</a></li>
+                        </ul>
+                    </div>
+                    <div class="text-white text-end">
+                        <p class="mb-0">v0.1</p>
+                    </div>
+                </div>
+            </div>
+            <!-- end of sidebar -->
+            <!-- main page -->
+            <main class="w-100">
+                {% block main_content %}
+                {% endblock %}
+                <!-- footer -->
+                <footer class="footer">
+                    <div class="container">
+                        <hr class="my-0 mx-5">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <p class="mb-0">Proctor for <strong>Your Institution</strong>.</p>
+                        </div>
+                    </div>
+                </footer>
+                <!-- end of footer -->
+            </main>
+            <!-- main page -->
+        </div>
+    </div>
+    <!-- visible only on large screen -->
+    <!-- visible on screens smaller than large screen -->
+    <div class="d-xl-none">
+        <div class="vh-100 container d-flex justify-content-center align-items-center">
+            <div class="w-75 text-center">
+                <h1>Small Screen Detected!</h1>
+                <p class="mb-0">This webpage is best viewed and available only on screens equal to or wider than 1200px. Sorry for the inconvenience.</p>
+            </div>
+        </div>
+        <footer class="footer" style="width: 100%;">
+            <div class="container text-center">
+                <hr class="my-0">
+                <p class="mb-0">Proctor for <strong>Your Institution</strong>.</p>
+            </div>
+        </footer>
+    </div>
+
+    {% endblock %}
     {% block js_script %}{% endblock %}
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 </body>
