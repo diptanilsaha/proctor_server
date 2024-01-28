@@ -48,10 +48,6 @@ class Role(db.Model):
                 db.session.add(role)
             db.session.commit()
 
-    def is_admin(self):
-        """Checks if Role is 'Administrator' or not."""
-        return RoleName.ADMIN == self.name
-
     def __repr__(self):
         return f"<Role {self.name}>"
 
@@ -90,6 +86,10 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         """Checks and matches password with a string."""
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_admin(self):
+        return RoleName.ADMIN == self.role.name
 
     @property
     def is_authenticated(self):
