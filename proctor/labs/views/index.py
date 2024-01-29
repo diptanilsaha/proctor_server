@@ -12,8 +12,9 @@ from proctor.decorators import admin_required
 @admin_required
 def index():
     """Labs - Index."""
-    labs = db.session.execute(db.select(Lab)).all()
+    labs = db.session.execute(db.select(Lab)).scalars().all()
     return render_template(
-        "lab/index.html",
-        labs=labs
+        "labs/index.html",
+        labs=labs,
+        title="All Labs"
     )

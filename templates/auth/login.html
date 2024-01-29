@@ -11,7 +11,7 @@
             {{ form.csrf_token }}
             <h1 class="mb-3 text-center"><strong>login</strong></h1>
             {% import 'macros.html' as macros %}
-            {{ macros.error() }}
+            {{ macros.error(width='w-100') }}
             <div class="mb-3">
                 {{ form.username.label(class_="form-label") }}
                 {{ form.username(class_="shadow-sm w-100 form-control-lg", placeholder="lab1") }}

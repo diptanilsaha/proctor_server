@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'labs' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4 mb-2">
+        <div class="dropdown">
+            <a class="h2 link-dark link-underline-opacity-0 dropdown-toggle" href="#" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="h1"><strong>{{ lab.labname }}</strong></span>
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('labs.change_pass', pk=lab.id) }}">change password</a></li>
+                {% if lab.clients|length == 0 %}
+                <li>
+                    <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#deleteModal">delete</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        {% import 'macros.html' as macros %}
+        {{ macros.modal(id="deleteModal", action_view='labs.delete_lab', pk=lab.id, name=lab.labname) }}
+        <div class="text-end">
+            <p class="mb-0"><strong>Lab mod: </strong>{{ lab.user.username }}</p>
+            <p class="mb-0"><strong>Created at: </strong>{{ lab.created_at }}</p>
+        </div>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- breadcrumb -->
+    <div class="mx-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('labs.index') }}">Labs</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ lab.labname }}</li>
+            </ol>
+        </nav>
+    </div>
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
+    {% if lab.clients|length == 0 %}
+    <div class="container d-flex justify-content-center align-items-center">
+        <div class="w-75 text-center">
+            <p class="lead mb-0">No clients found.</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="container text-center">
+        <h3 class="mb-4"><strong>Clients of Lab1</strong></h3>
+    </div>
+    <div class="row justify-content-center px-5 table-scroll">
+        <table class="table table-hover text-center">
+            <thead class="z-1 position-sticky top-0">
+                <tr class="table-secondary">
+                    <th scope="col">clientName</th>
+                    <th scope="col">lab</th>
+                    <th scope="col">created by</th>
+                    <th scope="col">created at</th>
+                    <th scope="col">status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in lab.clients %}
+                <tr class="align-middle">
+                    <th>
+                        <a href="#" class="link-dark">{{ client.clientname }}</a>
+                    </th>
+                    <td>{{ client.lab.labname }}</td>
+                    <td>{{ client.created_by.username }}</td>
+                    <td>{{ client.created_at }}</td>
+                    <td>
+                        {% if client.client_sessions and client.client_sessions[0].is_active %}
+                        <div class="d-inline-block align-middle">
+                            <!-- active pill -->
+                            <div class="status-pills active-status">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
+                                    <circle cx="8" cy="8" r="8"/>
+                                </svg>
+                                <span class="active-text">Active</span>
+                            </div>
+                            <!-- end of active pill -->
+                        </div>
+                        {% else %}
+                        <div class="status-pills inactive-status">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
+                                <circle cx="8" cy="8" r="8"/>
+                            </svg>
+                            <span class="inactive-text">Inactive</span>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
