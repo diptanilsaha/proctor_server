@@ -6,7 +6,7 @@ from wtforms import PasswordField
 from wtforms.validators import DataRequired, Length, EqualTo
 from proctor.database import db
 from proctor.decorators import admin_required
-from proctor.models import Lab, User
+from proctor.models import Lab
 from proctor.labs.base import labs_bp
 
 class ChangePasswordForm(FlaskForm):
