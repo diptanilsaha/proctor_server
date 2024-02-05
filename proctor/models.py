@@ -126,12 +126,9 @@ class Lab(db.Model):
 class Client(db.Model):
     """Client Model."""
     __tablename__ = "client"
-    id: Mapped[str] = mapped_column(
-        db.String(32),
-        primary_key=True,
-        default=generate_uuid)
-    clientname: Mapped[str] = mapped_column(
-        db.String(40), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(db.String(40), nullable=False)
+    clientname: Mapped[str] = mapped_column(db.String(40), nullable=False)
     lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
     lab: Mapped["Lab"] = relationship(back_populates="clients")
     created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
@@ -139,6 +136,10 @@ class Client(db.Model):
     created_at: Mapped[TimeStamp]
     client_sessions: Mapped[List["ClientSession"]] = relationship(
         back_populates="client", order_by=desc("ClientSession.session_start_time")
+    )
+
+    __table_args__ = (
+        UniqueConstraint("clientname", "lab_id", name="clientname_lab_uidx"),
     )
 
     def __repr__(self):
@@ -162,7 +163,7 @@ class ClientSession(db.Model):
         db.DateTime, nullable=True, server_default=func.CURRENT_TIMESTAMP())
     session_timeline: Mapped[List["ClientSessionTimeline"]] = relationship(
         back_populates="client_session")
-    client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
+    client_id: Mapped[int] = mapped_column(ForeignKey("client.id"))
     client: Mapped["Client"] = relationship(back_populates="client_sessions")
     candidate_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("candidate.id"))
