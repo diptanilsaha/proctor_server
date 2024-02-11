@@ -5,8 +5,8 @@
 {% block main_content %}
 <div class="container mt-4 px-4">
     <!-- header -->
-    <div class="d-flex justify-content-between align-items-center mx-4">
-        <h1 class="mb-0"><strong>{{ lab.labname }}</strong></h1>
+    <div class="d-flex justify-content-between align-items-center mb-2 mx-4">
+        <h1 class="mb-0"><strong>Labs</strong></h1>
     </div>
     <hr class="mt-0 mb-3">
     <!-- breadcrumb -->
@@ -14,7 +14,8 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ url_for('labs.index') }}">Labs</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Add new lab</li>
+                <li class="breadcrumb-item"><a href="{{ url_for('labs.lab_view', lab_id=lab.id) }}">{{ lab.labname }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Change Password</li>
             </ol>
         </nav>
     </div>
@@ -22,7 +23,7 @@
         <div class="form-add w-100 m-auto">
             <form method="post" action="{{ url_for('labs.change_pass', pk=lab.id) }}">
                 {{ form.csrf_token }}
-                <h3 class="mb-3 text-center"><strong>Add new lab</strong></h3>
+                <h3 class="mb-3 text-center"><strong>Change Password</strong></h3>
                 <p class="lead text-center">Changing password for: {{ lab.user.username }}</p>
                 {% import 'macros.html' as macros %}
                 {{ macros.error() }}

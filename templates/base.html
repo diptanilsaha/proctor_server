@@ -28,14 +28,13 @@
                             <span class="h5 mb-0">Labs</span>
                         </a>
                     </li>
-                    {% else %}
+                    {% endif %}
                     <li class="nav-item my-1">
-                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'labs' }}" aria-current="page">
+                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'clients' }}" aria-current="page">
                             <img class="pe-none me-2" src="{{ url_for('static', filename='icons/lan.svg') }}" width="24" height="24">
                             <span class="h5 mb-0">Clients</span>
                         </a>
                     </li>
-                    {% endif %}
                     <li class="nav-item my-1">
                         <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'assessments' }}">
                             <img class="pe-none me-2" src="{{ url_for('static', filename='icons/assignment.svg') }}" width="24" height="24">
@@ -60,7 +59,7 @@
                     <div class="dropdown">
                         <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            <strong>admin</strong>
+                            <strong>{{ current_user.username }}</strong>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Sign out</a></li>
