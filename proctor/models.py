@@ -1,5 +1,4 @@
 """Proctor Models."""
-
 import uuid
 import datetime
 from enum import Enum
@@ -10,6 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from typing_extensions import Annotated
 from .database import db
+from .utils import generate_clientname
 
 
 TimeStamp = Annotated[
@@ -126,16 +126,23 @@ class Lab(db.Model):
 class Client(db.Model):
     """Client Model."""
     __tablename__ = "client"
-    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    id: Mapped[str] = mapped_column(
+        db.String(32), primary_key=True, default=generate_uuid
+    )
     name: Mapped[str] = mapped_column(db.String(40), nullable=False)
-    clientname: Mapped[str] = mapped_column(db.String(40), nullable=False)
+    clientname: Mapped[str] = mapped_column(
+        db.String(40), nullable=False, default=generate_clientname
+    )
     lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
     lab: Mapped["Lab"] = relationship(back_populates="clients")
     created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     created_by: Mapped["User"] = relationship(back_populates="clients_created")
     created_at: Mapped[TimeStamp]
+    is_registered: Mapped[bool] = mapped_column(db.Boolean, default=False)
+    registered_at: Mapped[datetime.datetime] = mapped_column(
+        db.DateTime, nullable=True, server_default=func.CURRENT_TIMESTAMP())
     client_sessions: Mapped[List["ClientSession"]] = relationship(
-        back_populates="client", order_by=desc("ClientSession.session_start_time")
+        back_populates="client", order_by=desc("session_start_time")
     )
 
     __table_args__ = (
@@ -163,7 +170,7 @@ class ClientSession(db.Model):
         db.DateTime, nullable=True, server_default=func.CURRENT_TIMESTAMP())
     session_timeline: Mapped[List["ClientSessionTimeline"]] = relationship(
         back_populates="client_session")
-    client_id: Mapped[int] = mapped_column(ForeignKey("client.id"))
+    client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
     client: Mapped["Client"] = relationship(back_populates="client_sessions")
     candidate_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("candidate.id"))

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'clients' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4 mb-2">
+        <h1 class="mb-0"><strong>Clients</strong></h1>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- breadcrumb -->
+    <div class="mx-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('clients.index') }}">Clients</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ client.clientname }}</li>
+            </ol>
+        </nav>
+    </div>
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
+    <div class="container w-75 mx-auto p-4 border">
+        <div class="d-flex justify-content-start align-items-center mb-2">
+            <h3 class="ms-2 me-3">{{ client.clientname }}</h3>
+            {% if client.client_sessions|length > 0 and client.client_sessions[0].is_active %}
+            <!-- active pill -->
+            <div class="status-pills active-status">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-circle-fill"
+                    viewBox="0 0 16 16">
+                    <circle cx="8" cy="8" r="8" />
+                </svg>
+                <span class="active-text">Active</span>
+            </div>
+            <!-- end of active pill -->
+            {% else %}
+            <div class="status-pills inactive-status">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-circle-fill"
+                    viewBox="0 0 16 16">
+                    <circle cx="8" cy="8" r="8" />
+                </svg>
+                <span class="inactive-text">Inactive</span>
+            </div>
+            {% endif %}
+        </div>
+        <table class="table">
+            <tbody class="align-middle">
+                <tr>
+                    <th scope="row">Name</th>
+                    <td>{{ client.name }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Lab</th>
+                    <td>
+                        <a class="link link-dark" href="{{ url_for('labs.lab_view', lab_id=client.lab.id) }}">{{ client.lab.labname }}</a>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="col">is_registered</th>
+                    <td>{{ client.is_registered }}</td>
+                </tr>
+                {% if client.is_registered %}
+                <tr>
+                    <th scope="col">registered at</th>
+                    <td>{{ client.registered_at }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th scope="row">Created by</th>
+                    <td>{{ client.created_by.username }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Created at</th>
+                    <td>{{ client.created_at }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <a class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#sessionModal">view sessions</a>
+        {% if current_user.is_admin %}
+        <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">delete client</a>
+        {% endif %}
+    </div>
+</div>
+{% import 'macros.html' as macros %}
+{{ macros.modal(id="deleteModal", action_view='clients.delete_client', pk=client.id, name=client.clientname) }}
+<div class="modal fade" tabindex="-1" role="dialog" id="sessionModal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">{{ client.clientname }}'s Sessions</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if client.client_sessions|length == 0 %}
+                <p class="lead text-center">No sessions.</p>
+                {% else %}
+                <div class="row justify-content-center px-5 table-scroll">
+                    <table class="table table-hover text-center">
+                        <thead class="z-1 position-sticky top-0">
+                            <tr class="table-secondary">
+                                <th scope="col">Session Id</th>
+                                <th scope="col">IP Address</th>
+                                <th scope="col">Start Time</th>
+                                <th scope="col">End Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in client.client_sessions %}
+                            <tr class="align-middle">
+                                <td scope="col">
+                                    <a href="#" class="link link-dark">{{ session.id }}</a>
+                                </td>
+                                <td>{{ session.session_ip_addr }}</td>
+                                <td>{{ session.session_start_time }}</td>
+                                <td>{{ session.session_end_time }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

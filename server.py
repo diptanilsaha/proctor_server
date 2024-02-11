@@ -18,6 +18,7 @@ from proctor.models import (
 )
 from proctor.labs.base import labs_bp
 from proctor.auth.base import auth_bp
+from proctor.clients.base import client_bp
 
 
 def create_app(config_class :Config = Config) -> Flask:
@@ -66,3 +67,4 @@ def register_blueprints(app: Flask):
     """Register all the Blueprints."""
     app.register_blueprint(labs_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(client_bp)
