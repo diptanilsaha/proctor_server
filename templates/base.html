@@ -23,14 +23,14 @@
                 <ul class="nav nav-pills flex-column mb-auto">
                     {% if current_user.is_admin %}
                     <li class="nav-item my-1">
-                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'labs' }}" aria-current="page">
+                        <a href="{{ url_for('labs.index') }}" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'labs' }}" aria-current="page">
                             <img class="pe-none me-2" src="{{ url_for('static', filename='icons/lan.svg') }}" width="24" height="24">
                             <span class="h5 mb-0">Labs</span>
                         </a>
                     </li>
                     {% endif %}
                     <li class="nav-item my-1">
-                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'clients' }}" aria-current="page">
+                        <a href="{{ url_for('clients.index') }}" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'clients' }}" aria-current="page">
                             <img class="pe-none me-2" src="{{ url_for('static', filename='icons/lan.svg') }}" width="24" height="24">
                             <span class="h5 mb-0">Clients</span>
                         </a>
