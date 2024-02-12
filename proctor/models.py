@@ -233,6 +233,8 @@ class Assessment(db.Model):
     created_at: Mapped[TimeStamp]
     lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
     lab: Mapped["Lab"] = relationship(back_populates="assessments")
+    start_time: Mapped[datetime.datetime] = mapped_column(db.DateTime)
+    end_time: Mapped[datetime.datetime] = mapped_column(db.DateTime)
     created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     created_by: Mapped["User"] = relationship(back_populates="assessments")
     candidates: Mapped[List["Candidate"]] = relationship(
@@ -286,7 +288,7 @@ class Candidate(db.Model):
         back_populates="candidates")
     client_sessions: Mapped[List["ClientSession"]
                             ] = relationship(back_populates="candidate")
-    timeline: Mapped["CandidateTimeline"] = relationship(
+    timeline: Mapped[List["CandidateTimeline"]] = relationship(
         back_populates="candidate")
 
     __table_args__ = (
