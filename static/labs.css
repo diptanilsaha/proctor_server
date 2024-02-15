@@ -59,3 +59,8 @@ body {
     margin-left: 5px;
     color: #C90000;
 }
+
+.req::after {
+    color: red;
+    content: "*";
+}

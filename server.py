@@ -1,5 +1,5 @@
 """Proctor Server"""
-
+import os
 from flask import Flask
 from proctor.extensions import login_manager
 from proctor.config import Config
@@ -19,12 +19,16 @@ from proctor.models import (
 from proctor.labs.base import labs_bp
 from proctor.auth.base import auth_bp
 from proctor.clients.base import client_bp
+from proctor.assessments.base import assess_bp
 
 
-def create_app(config_class :Config = Config) -> Flask:
+def create_app(config_class: Config = Config) -> Flask:
     """Proctor Flask App."""
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    if not os.path.exists(app.config['ASSESSMENT_MEDIA']):
+        os.mkdir(app.config['ASSESSMENT_MEDIA'])
 
     init_db(app)
     init_login(app)
@@ -68,3 +72,4 @@ def register_blueprints(app: Flask):
     app.register_blueprint(labs_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(client_bp)
+    app.register_blueprint(assess_bp)

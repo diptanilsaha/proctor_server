@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'assessments' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4 my-2">
+        <h1 class="mb-0"><strong>Assessments</strong></h1>
+        <a href="{{ url_for('assessments.add') }}" role="button" class="btn btn-success">+ Add new Assessment</a>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- breadcrumb -->
+    <div class="mx-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active">Assessments</li>
+                <li class="breadcrumb-item active" aria-current="page">All assessments</li>
+            </ol>
+        </nav>
+    </div>
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
+    <!-- end of breacrumb -->
+    <!-- end of header -->
+    <!-- table of labs -->
+    <div class="container text-center">
+        {% if not lab %}
+        <h3 class="mb-4"><strong>All assessments</strong></h3>
+        {% else %}
+        <h3 class="mb-4"><strong>Assessments of {{ lab.labname }}</strong></h3>
+        {% endif %}
+    </div>
+    {% if assessments|length == 0 %}
+    <div class="container d-flex justify-content-center align-items-center">
+        <div class="w-75 text-center">
+            <p class="lead mb-0">No assessment found. Create a new Assessment by clicking on 'add new Assessment'.</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="row justify-content-center px-5 table-scroll">
+        <table class="table table-hover text-center">
+            <thead class="z-1 position-sticky top-0">
+                <tr class="table-secondary">
+                    <th scope="col">Title</th>
+                    <th scope="col">Start Time</th>
+                    <th scope="col">End Time</th>
+                    <th scope="col">Students Count</th>
+                    <th scope="col">Lab</th>
+                    <th scope="col">Created By</th>
+                    <th scope="col">Created At</th>
+                    <th scope="col">Current Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assessment in assessments %}
+                <tr class="align-middle">
+                    <th>
+                        <a href="{{ url_for('assessments.assessment_view', pk=assessment.id) }}" class="link-dark">{{ assessment.title }}</a>
+                    </th>
+                    <td>{{ assessment.start_time }}</td>
+                    <td>{{ assessment.end_time }}</td>
+                    <td>{{ assessment.candidates|length }}</td>
+                    <td>{{ assessment.lab.labname }}</td>
+                    <td>{{ assessment.created_by.username }}</td>
+                    <td>{{ assessment.created_at }}</td>
+                    <td>{{ assessment.current_status.value }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    <!-- table of labs -->
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'assessments' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4">
+        <h1 class="mb-0"><strong>Assessments</strong></h1>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- breadcrumb -->
+    <div class="mx-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('assessments.index') }}">Assessments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Add new Assessment</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="container">
+        <div class="w-75 m-auto">
+            <form method="post" action="{{ url_for('assessments.update', pk=assessment.id) }}" enctype="multipart/form-data">
+                {{ form.csrf_token }}
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-3 text-center"><strong>Update '{{ assessment.title }}'</strong></h3>
+                    <div class="row row-cols-2 g-2">
+                        <div class="col">
+                            <a href="{{ url_for('assessments.assessment_view', pk=assessment.id) }}" class="btn btn-outline-dark">Cancel</a>
+                        </div>
+                        <div class="col">
+                            <button class="btn btn-success" type="submit">Update</button>
+                        </div>
+                    </div>
+                </div>
+                {% import 'macros.html' as macros %}
+                {{ macros.error() }}
+                <div class="mb-3">
+                    {{ form.title.label(class_="form-label req") }}
+                    {{ form.title(class_="shadow-sm w-100 form-control", placeholder="Title") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.description.label(class_="form-label req") }}
+                    {{ form.description(
+                        class_="shadow-sm w-100 form-control",
+                        placeholder="Description",
+                        rows=3,
+                        style='resize: None;'
+                    ) }}
+                </div>
+                <div class="row row-cols-3 mb-3">
+                    <div class="col">
+                        {{ form.lab_id.label(class_="form-label req") }}
+                        {{ form.lab_id(class_="shadow-sm w-100 form-select") }}
+                    </div>
+                    <div class="col">
+                        {{ form.start_time.label(class_="form-label req") }}
+                        {{ form.start_time(class_="shadow-sm w-100 form-control", min=min_time) }}
+                    </div>
+                    <div class="col">
+                        {{ form.duration.label(class_="form-label req") }}
+                        {{ form.duration(class_="shadow-sm w-100 form-control", placeholder="120") }}
+                    </div>
+                </div>
+                <div class="row row-cols-2">
+                    <div class="col">
+                        {{ form.media.label(class_="form-label") }}
+                        {{ form.media(class_="shadow-sm w-100 form-control", accept=".zip,.rar,.7zip") }}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- endform -->
+</div>
+{% endblock %}

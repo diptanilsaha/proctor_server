@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'assessments' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4 mb-2">
+        <h1 class="mb-0"><strong>Assessments</strong></h1>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- breadcrumb -->
+    <div class="mx-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('assessments.index') }}">Assessments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ assessment.title }}</li>
+            </ol>
+        </nav>
+    </div>
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
+    <div class="container w-75 mx-auto p-4 border shadow">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="ms-2 me-3 mb-0">{{ assessment.title }}</h3>
+            <p class="mb-0"><strong>current status:</strong> {{ assessment.current_status.value }}</p>
+        </div>
+        <table class="table">
+            <tbody class="align-middle">
+                <tr>
+                    <th scope="row">Description</th>
+                    <td>{{ assessment.description }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Lab</th>
+                    <td>
+                        <a class="link link-dark" href="{{ url_for('labs.lab_view', lab_id=assessment.lab.id) }}">{{ assessment.lab.labname }}</a>
+                    </td>
+                </tr>
+                <tr>
+                   <th scope="row">Media</th>
+                   <td>
+                        <a href="{{ url_for('assessments.download_media', filename=assessment.media) }}" class="link link-dark">Download</a>
+                   </td>
+                </tr>
+                <tr>
+                    <th scope="row">Candidates</th>
+                    <td>
+                        {{ assessment.candidates|length }}
+                        <a class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#candidateModal">view candidates</a>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Start Time</th>
+                    <td>{{ assessment.start_time }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">End Time</th>
+                    <td>{{ assessment.end_time }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Duration</th>
+                    <td>{{ assessment.duration }} minutes</td>
+                </tr>
+                <tr>
+                    <th scope="row">Created by</th>
+                    <td>{{ assessment.created_by.username }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Created at</th>
+                    <td>{{ assessment.created_at }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- <a class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#sessionModal">view sessions</a> -->
+        <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">delete assessment</a>
+        <a class="btn btn-outline-success" href="{{ url_for('assessments.update', pk=assessment.id) }}">update</a>
+    </div>
+</div>
+{% import 'macros.html' as macros %}
+{{ macros.modal(id="deleteModal", action_view='assessments.delete', pk=assessment.id, name=assessment.title) }}
+<div class="modal fade" tabindex="-1" role="dialog" id="candidateModal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Candidates of '{{ assessment.title }}'</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if assessment.candidates|length == 0 %}
+                <p class="lead text-center">No sessions.</p>
+                {% else %}
+                <div class="row justify-content-center px-5 table-scroll">
+                    <table class="table table-hover text-center">
+                        <thead class="z-1 position-sticky top-0">
+                            <tr class="table-secondary">
+                                <th scope="col">Roll</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Current Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidate in assessment.candidates %}
+                            <tr class="align-middle">
+                                <td>{{ candidate.roll }}</td>
+                                <td>{{ candidate.name }}</td>
+                                <td>{{ candidate.current_status.value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-success">Add More Candidates</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
