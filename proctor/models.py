@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from typing_extensions import Annotated
 from .database import db
-from .utils import generate_clientname
+from .utils import generate_clientname, calculate_duration
 
 
 TimeStamp = Annotated[
@@ -142,7 +142,9 @@ class Client(db.Model):
     registered_at: Mapped[datetime.datetime] = mapped_column(
         db.DateTime, nullable=True, server_default=func.CURRENT_TIMESTAMP())
     client_sessions: Mapped[List["ClientSession"]] = relationship(
-        back_populates="client", order_by=desc("session_start_time")
+        back_populates="client",
+        order_by=desc("session_start_time"),
+        cascade="all, delete-orphan"
     )
 
     __table_args__ = (
@@ -151,6 +153,12 @@ class Client(db.Model):
 
     def __repr__(self):
         return f"<Client f{self.clientname}>"
+
+    @property
+    def is_active(self):
+        if self.client_sessions and self.client_sessions[0].is_active:
+            return True
+        return False
 
 
 class ClientSession(db.Model):
@@ -169,7 +177,7 @@ class ClientSession(db.Model):
     session_end_time: Mapped[datetime.datetime] = mapped_column(
         db.DateTime, nullable=True, server_default=func.CURRENT_TIMESTAMP())
     session_timeline: Mapped[List["ClientSessionTimeline"]] = relationship(
-        back_populates="client_session")
+        back_populates="client_session", cascade="all, delete-orphan")
     client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
     client: Mapped["Client"] = relationship(back_populates="client_sessions")
     candidate_id: Mapped[Optional[int]] = mapped_column(
@@ -225,11 +233,17 @@ class AssessmentStatus(Enum):
 class Assessment(db.Model):
     """Assessment Model."""
     __tablename__ = "assessment"
-    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    id: Mapped[str] = mapped_column(
+        db.String(32),
+        primary_key=True,
+        default=generate_uuid
+    )
     title: Mapped[str] = mapped_column(db.String(50), nullable=False)
     description: Mapped[str] = mapped_column(db.Text)
-    media_url: Mapped[str] = mapped_column(db.String(32))
-    current_status: Mapped[AssessmentStatus]
+    media: Mapped[str] = mapped_column(db.String(32))
+    current_status: Mapped[AssessmentStatus] = mapped_column(
+        default=AssessmentStatus.INIT
+    )
     created_at: Mapped[TimeStamp]
     lab_id: Mapped[int] = mapped_column(ForeignKey("lab.id"))
     lab: Mapped["Lab"] = relationship(back_populates="assessments")
@@ -238,9 +252,45 @@ class Assessment(db.Model):
     created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     created_by: Mapped["User"] = relationship(back_populates="assessments")
     candidates: Mapped[List["Candidate"]] = relationship(
-        back_populates="assessment")
+        back_populates="assessment", cascade="all, delete-orphan")
     assessment_timeline: Mapped[List["AssessmentTimeline"]] = relationship(
-        back_populates="assessment")
+        back_populates="assessment", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Assessment {self.title}>"
+
+    @property
+    def duration(self):
+        return calculate_duration(self.start_time, self.end_time)
+
+    @staticmethod
+    def insert_assessment(
+        title: str,
+        description: str,
+        media: str,
+        lab_id: int,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        user: User
+    ):
+        assessment = Assessment(
+            title = title,
+            description = description,
+            media = media,
+            lab_id = lab_id,
+            start_time = start_time,
+            end_time = end_time,
+            created_by = user
+        )
+        atl = AssessmentTimeline(
+            status = AssessmentStatus.INIT,
+            atl_created_by = user,
+            assessment = assessment
+        )
+        db.session.add_all([assessment, atl])
+        db.session.commit()
+        return assessment
+
 
 
 class AssessmentTimeline(db.Model):
@@ -249,7 +299,7 @@ class AssessmentTimeline(db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     status: Mapped[AssessmentStatus]
     timestamp: Mapped[TimeStamp]
-    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessment.id"))
+    assessment_id: Mapped[str] = mapped_column(ForeignKey("assessment.id"))
     assessment: Mapped["Assessment"] = relationship(
         back_populates="assessment_timeline")
     atl_created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
@@ -261,11 +311,13 @@ class CandidateStatus(Enum):
     """
     Candidate Status Enum.
 
+    WAITING - Candidate created and waiting for Assignment.
     PENDING - Candidate Submission is Pending.
     SUBMITTED - Candidate Submitted his Work.
     ACCEPTED - Candidate's Submission Accepted.
     REJECTED - Candidate's Submission Rejected.
     """
+    WAITING = "waiting"
     PENDING = "pending"
     SUBMITTED = "submitted"
     ACCEPTED = "accepted"
@@ -275,25 +327,48 @@ class CandidateStatus(Enum):
 class Candidate(db.Model):
     """Candidate Model."""
     __tablename__ = "candidate"
-    id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
+    id: Mapped[str] = mapped_column(
+        db.String(32),
+        primary_key=True,
+        default=generate_uuid,
+    )
     name: Mapped[str] = mapped_column(db.String(40))
     roll: Mapped[str] = mapped_column(db.String(20))
-    submission_media_url: Mapped[str] = mapped_column(db.String(50))
-    current_status: Mapped[CandidateStatus]
-    sub_verified_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    submission_media_url: Mapped[str] = mapped_column(db.String(50), nullable=True)
+    current_status: Mapped[CandidateStatus] = mapped_column(
+        default=CandidateStatus.WAITING
+    )
+    sub_verified_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
     sub_verified_by: Mapped["User"] = relationship(
         back_populates="cs_verifier")
-    assessment_id: Mapped[int] = mapped_column(ForeignKey("assessment.id"))
+    assessment_id: Mapped[str] = mapped_column(ForeignKey("assessment.id"))
     assessment: Mapped["Assessment"] = relationship(
         back_populates="candidates")
     client_sessions: Mapped[List["ClientSession"]
                             ] = relationship(back_populates="candidate")
     timeline: Mapped[List["CandidateTimeline"]] = relationship(
-        back_populates="candidate")
+        back_populates="candidate", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("roll", "assessment_id", name="assessment_roll_uidx"),
     )
+
+    @staticmethod
+    def insert_candidate(name: str, roll: str, assessment: Assessment):
+        candidate = Candidate(
+            name = name,
+            roll = roll,
+            assessment = assessment
+        )
+        ctl = CandidateTimeline(
+            status = CandidateStatus.WAITING,
+            candidate = candidate
+        )
+        db.session.add_all([candidate, ctl])
+        db.session.commit()
+
+    def __repr__(self):
+        return f"<Candidate {self.assessment.title} {self.name}>"
 
 
 class CandidateTimeline(db.Model):
@@ -301,7 +376,7 @@ class CandidateTimeline(db.Model):
     __tablename__ = "candidateTimeline"
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     status: Mapped[CandidateStatus]
-    details: Mapped[str] = mapped_column(db.Text)
+    details: Mapped[str] = mapped_column(db.Text, nullable=True)
     timestamp: Mapped[TimeStamp]
-    candidate_id: Mapped[int] = mapped_column(ForeignKey("candidate.id"))
+    candidate_id: Mapped[str] = mapped_column(ForeignKey("candidate.id"))
     candidate: Mapped["Candidate"] = relationship(back_populates="timeline")
