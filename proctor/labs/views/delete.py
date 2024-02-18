@@ -13,7 +13,10 @@ def delete_lab(pk):
     lab: Lab = db.get_or_404(Lab, int(pk))
     if len(lab.clients) != 0:
         flash('Lab couldn\'t be deleted.', 'error')
-        return redirect(url_for('labs.index'))
+        return redirect(url_for('labs.lab_view', lab_id=lab.id))
+    if len(lab.assessments) != 0:
+        flash("Lab could not be deleted due to presence of Assessment Records.", "error")
+        return redirect(url_for('labs.lab_view', lab_id=lab.id))
     db.session.delete(lab.user)
     db.session.delete(lab)
     db.session.commit()
