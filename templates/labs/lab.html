@@ -48,5 +48,11 @@
     </div>
 </div>
 {% import 'macros.html' as macros %}
-{{ macros.modal(id="deleteModal", action_view='labs.delete_lab', pk=lab.id, name=lab.labname) }}
+{{ macros.modal(
+    id="deleteModal",
+    action_view='labs.delete_lab',
+    pk=lab.id,
+    name=lab.labname,
+    message="Lab will be deleted only if there are no Clients and Assessments present.
+    If Clients or Assessments are present, either delete or move to some other Labs.") }}
 {% endblock %}
