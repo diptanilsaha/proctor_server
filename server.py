@@ -20,7 +20,7 @@ from proctor.labs.base import labs_bp
 from proctor.auth.base import auth_bp
 from proctor.clients.base import client_bp
 from proctor.assessments.base import assess_bp
-
+from proctor.cli import cli_bp
 
 def create_app(config_class: Config = Config) -> Flask:
     """Proctor Flask App."""
@@ -75,6 +75,7 @@ def register_blueprints(app: Flask):
     app.register_blueprint(auth_bp)
     app.register_blueprint(client_bp)
     app.register_blueprint(assess_bp)
+    app.register_blueprint(cli_bp)
 
 def init_scheduler(app: Flask):
     scheduler.init_app(app)

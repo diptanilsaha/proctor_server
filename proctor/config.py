@@ -23,3 +23,5 @@ class Config:
     SCHEDULER_JOBSTORES = {
         "default": SQLAlchemyJobStore(url="sqlite:///flask_context.db")
     }
+    ADMIN_USERNAME = os.getenv('ADMIN_USERNAME')
+    ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
