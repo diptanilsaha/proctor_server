@@ -6,7 +6,7 @@ from sqlalchemy import between, and_, or_
 from proctor.assessments.base import assess_bp
 from proctor.database import db
 from proctor.assessments.forms import UpdateAssessmentForm
-from proctor.models import Assessment
+from proctor.models import Assessment, AssessmentStatus
 from proctor.utils import generate_media_name, remove_assessment_media
 
 @assess_bp.route('/update/<pk>/', methods=['GET', 'POST'])
@@ -15,14 +15,19 @@ def update(pk):
     assessment = db.get_or_404(Assessment, pk)
     if not current_user.is_admin:
         if current_user.lab != assessment.lab:
-            flash("You can update assessments which are held on your Lab.")
+            flash("Sorry you don't have permission to access.", "error")
             return redirect(url_for("assessments.index"))
+
+    if assessment.current_status != AssessmentStatus.INIT:
+        flash("Assessments can be updated only at initial stage.", "error")
+        return redirect(url_for('assessments.assessment_view', pk=assessment.id))
 
     form = UpdateAssessmentForm(obj=assessment)
     if not current_user.is_admin:
         form.lab_id.choices = [
             ('', "Select Lab"),
-            (current_user.lab.id, current_user.lab.labname)
+            (current_user.lab.id,
+             f"{current_user.lab.labname} ({len(current_user.lab.clients)} clients)")
         ]
     if request.method == 'POST':
         if form.validate_on_submit():
@@ -32,7 +37,7 @@ def update(pk):
                 duration=form.duration.data,
                 lab_id=form.lab_id.data
             ):
-                flash("Start Time or Duration error.")
+                flash("Start Time or Duration error.", "error")
                 return redirect(url_for("assessments.update", pk=assessment.id))
             start_time = form.start_time.data
             end_time = start_time + datetime.timedelta(minutes=form.duration.data)

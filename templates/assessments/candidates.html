@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'assessments' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4 my-2">
+        <h1 class="mb-0"><strong>Assessments</strong></h1>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- breadcrumb -->
+    <div class="mx-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('assessments.index') }}">Assessments</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('assessments.assessment_view', pk=assessment.id) }}">{{ assessment.title }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Candidates</li>
+            </ol>
+        </nav>
+    </div>
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
+    <!-- end of breacrumb -->
+    <!-- end of header -->
+    <!-- table of labs -->
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+            <h3 class="mb-0"><strong>Candidates of '{{ assessment.title }}'</strong></h3>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Add/Delete
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ url_for('assessments.add_candidate', pk=assessment.id) }}">Add a Candidate</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('assessments.add_candidates', pk=assessment.id) }}">Add Candidates via CSV</a></li>
+                    {% if assessment.candidates|length > 0 %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#deleteCandidatesModal">Delete all Candidates</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% if assessment.candidates|length == 0 %}
+    <div class="container d-flex justify-content-center align-items-center">
+        <div class="w-75 text-center">
+            <p class="lead mb-0">No Candidates found. Add a new candidate.</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="row justify-content-center px-5 table-scroll">
+        <table class="table table-hover text-center">
+            <thead class="z-1 position-sticky top-0">
+                <tr class="table-secondary">
+                    <th scope="col">Roll</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Current Status</th>
+                    <th scope="col">Assigned</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for candidate in assessment.candidates %}
+                <tr class="align-middle">
+                    <th scope="row">
+                        <a href="{{ url_for('assessments.candidate_view', pk=candidate.id) }}" class="link link-dark">{{ candidate.roll }}</a>
+                    </th>
+                    <td>{{ candidate.name }}</td>
+                    <td>{{ candidate.current_status.value }}</td>
+                    {% if candidate.is_assigned %}
+                    <td>{{ candidate.client_session.client.clientname }}</td>
+                    {% else %}
+                    <td>Not Assigned</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    <!-- table of labs -->
+</div>
+{% if assessment.candidates|length > 0 %}
+{{ macros.modal(id="deleteCandidatesModal",
+action_view='assessments.delete_all_candidates',
+pk=assessment.id,
+name='Candidates of ' ~ assessment.title,
+message="Candidates cannot be deleted after Initial and Registration Phase.") }}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'assessments' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4 mb-2">
+        <h1 class="mb-0"><strong>Assessments</strong></h1>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- breadcrumb -->
+    <div class="mx-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('assessments.index') }}">Assessments</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('assessments.assessment_view', pk=candidate.assessment.id) }}">{{ candidate.assessment.title }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('assessments.candidates', pk=candidate.assessment.id) }}">Candidates</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ candidate.roll }} - {{ candidate.name }}</li>
+            </ol>
+        </nav>
+    </div>
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
+    <div class="container w-75 mx-auto p-4 border shadow">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="ms-2 me-3 mb-0">Candidate</h3>
+            <div class="d-flex align-items-center">
+                <p class="mb-0"><strong>current status:</strong> {{ candidate.current_status.value }}</p>
+                <a class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#historyModal">View Timeline</a>
+            </div>
+        </div>
+        <table class="table">
+            <tbody class="align-middle">
+                <tr>
+                    <th scope="row">Roll</th>
+                    <td>{{ candidate.roll }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Name</th>
+                    <td>{{ candidate.name }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Client Assigned</th>
+                    <td>
+                        {% if candidate.is_assigned %}
+                        {{ assessment.client_session.client.name }}
+                        <a class="btn btn-outline-dark btn-sm" href="{{ url_for('assessments.assign', pk=candidate.id) }}">Reassign</a>
+                        {% else %}
+                        <a class="btn btn-outline-dark btn-sm" href="{{ url_for('assessments.assign', pk=candidate.id) }}">Assign</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!-- <a class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#sessionModal">view sessions</a> -->
+        <div class="d-flex justify-content-end align-items-center">
+            {% if candidate.assessment.current_status.value in ['initial', 'registration'] %}
+                <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete candidate</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% import 'macros.html' as macros %}
+{{ macros.modal(id="deleteModal",
+action_view='assessments.delete_candidate',
+pk=candidate.id,
+name=candidate.roll ~ '-' ~ candidate.name,
+message="This is an irreversible action and will result in permanently deleting candidate. Proceed with caution.") }}
+<div class="modal fade" tabindex="-1" role="dialog" id="historyModal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Timeline '{{ candidate.roll }}'</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if candidate.timeline|length == 0 %}
+                <p class="lead text-center">No history.</p>
+                {% else %}
+                <div class="row justify-content-center px-5 table-scroll">
+                    <table class="table table-hover text-center">
+                        <thead class="z-1 position-sticky top-0">
+                            <tr class="table-secondary">
+                                <th scope="col">Timestamp</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for timeline in candidate.timeline %}
+                            <tr class="align-middle">
+                                <td>{{ timeline.timestamp }}</td>
+                                <td>{{ timeline.status.value }}</td>
+                                <td>{{ timeline.details }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

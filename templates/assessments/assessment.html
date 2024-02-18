@@ -23,7 +23,10 @@
     <div class="container w-75 mx-auto p-4 border shadow">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h3 class="ms-2 me-3 mb-0">{{ assessment.title }}</h3>
-            <p class="mb-0"><strong>current status:</strong> {{ assessment.current_status.value }}</p>
+            <div class="d-flex align-items-center">
+                <p class="mb-0"><strong>current status:</strong> {{ assessment.current_status.value }}</p>
+                <a class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#historyModal">View History</a>
+            </div>
         </div>
         <table class="table">
             <tbody class="align-middle">
@@ -40,14 +43,14 @@
                 <tr>
                    <th scope="row">Media</th>
                    <td>
-                        <a href="{{ url_for('assessments.download_media', filename=assessment.media) }}" class="link link-dark">Download</a>
+                        <a href="{{ url_for('assessments.download_media', filename=assessment.media) }}" class="link link-dark" target="_blank">Download</a>
                    </td>
                 </tr>
                 <tr>
                     <th scope="row">Candidates</th>
                     <td>
                         {{ assessment.candidates|length }}
-                        <a class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#candidateModal">view candidates</a>
+                        <a class="btn btn-outline-dark btn-sm" href="{{ url_for('assessments.candidates', pk=assessment.id) }}">view candidates</a>
                     </td>
                 </tr>
                 <tr>
@@ -73,38 +76,63 @@
             </tbody>
         </table>
         <!-- <a class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#sessionModal">view sessions</a> -->
-        <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">delete assessment</a>
-        <a class="btn btn-outline-success" href="{{ url_for('assessments.update', pk=assessment.id) }}">update</a>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                {% if assessment.current_status.value == 'initial' %}
+                <a class="btn btn-outline-success" href="{{ url_for('assessments.update', pk=assessment.id) }}">Update Assessment</a>
+                {% endif %}
+                {% if not (assessment.current_status.value == 'complete' or assessment.current_status.value == 'expired') %}
+                <a class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateStatusModal">Update Status</a>
+                {% endif %}
+                {% if current_user.is_admin %}
+                {% if assessment.current_status.value == 'registration' %}
+                <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#revertStatusModal">Revert Status</a>
+                {% endif %}
+                {% endif %}
+            </div>
+            <div>
+                <a class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete assessment</a>
+            </div>
+        </div>
     </div>
 </div>
 {% import 'macros.html' as macros %}
-{{ macros.modal(id="deleteModal", action_view='assessments.delete', pk=assessment.id, name=assessment.title) }}
-<div class="modal fade" tabindex="-1" role="dialog" id="candidateModal">
+{{ macros.modal(id="deleteModal",
+action_view='assessments.delete',
+pk=assessment.id,
+name=assessment.title,
+message="This is an irreversible action and will result in permanently deleting candidate's and assessment
+work. Proceed with Caution.") }}
+{{ macros.modal(id="updateStatusModal", action_view='assessments.update_status', pk=assessment.id, name=assessment.title, type="Update Status") }}
+{% if current_user.is_admin %}
+{{ macros.modal(id="revertStatusModal", action_view='assessments.revert_status', pk=assessment.id, name=assessment.title, type="Revert Status") }}
+{% endif %}
+<div class="modal fade" tabindex="-1" role="dialog" id="historyModal">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Candidates of '{{ assessment.title }}'</h1>
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">History '{{ assessment.title }}'</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                {% if assessment.candidates|length == 0 %}
+                {% if assessment.assessment_timeline|length == 0 %}
                 <p class="lead text-center">No sessions.</p>
                 {% else %}
                 <div class="row justify-content-center px-5 table-scroll">
                     <table class="table table-hover text-center">
                         <thead class="z-1 position-sticky top-0">
                             <tr class="table-secondary">
-                                <th scope="col">Roll</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Current Status</th>
+                                <th scope="col">Timestamp</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">User</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for candidate in assessment.candidates %}
+                            {% for timeline in assessment.assessment_timeline %}
                             <tr class="align-middle">
-                                <td>{{ candidate.roll }}</td>
-                                <td>{{ candidate.name }}</td>
-                                <td>{{ candidate.current_status.value }}</td>
+                                <td>{{ timeline.timestamp }}</td>
+                                <td>{{ timeline.status.value }}</td>
+                                <td>{{ timeline.atl_created_by.username }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -113,7 +141,6 @@
                 {% endif %}
             </div>
             <div class="modal-footer">
-                <a href="#" class="btn btn-success">Add More Candidates</a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>

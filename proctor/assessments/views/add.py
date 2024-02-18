@@ -5,7 +5,8 @@ from io import StringIO
 from flask_login import login_required, current_user
 from flask import request, current_app, render_template, flash, redirect, url_for
 from proctor.assessments.base import assess_bp
-from proctor.models import Assessment, Candidate
+from proctor.models import Assessment, Candidate, Lab
+from proctor.database import db
 from proctor.assessments.forms import AddAssessmentForm
 from proctor.utils import generate_media_name
 
@@ -17,14 +18,18 @@ def add():
     if not current_user.is_admin:
         form.lab_id.choices = [
             ('', "Select Lab"),
-            (current_user.lab.id, current_user.lab.labname)
+            (current_user.lab.id,
+             f"{current_user.lab.labname} ({len(current_user.lab.clients)} clients)")
         ]
     if request.method == 'POST':
         if form.validate_on_submit():
             candidate_data = request.files.get(form.candidate.name).read()
-            if form.candidate.data and not validate_candidates(candidate_data):
-                flash("Candidate List format is not correct.")
-                return redirect(url_for('assessments.add'))
+            if form.candidate.data:
+                lab: Lab = db.session.get(Lab, int(form.lab_id.data))
+                if not validate_candidates(candidate_data, lab):
+                    flash("Candidate List format is not correct or number of Candidates \
+                      greater than number of Clients of selected lab.", "error")
+                    return redirect(url_for('assessments.add'))
             end_time = form.start_time.data + datetime.timedelta(minutes=form.duration.data)
             media_name = generate_media_name(form.media.data.filename)
             assessment = Assessment.insert_assessment(
@@ -59,7 +64,11 @@ def add():
         form=form,
     )
 
-def validate_candidates(candidate_file_stream: bytes):
+def validate_candidates(
+    candidate_file_stream: bytes,
+    lab: Lab,
+    assessment: Assessment = None
+):
     csvreader = csv.DictReader(StringIO(candidate_file_stream.decode('UTF-8')))
     csv_fields = list(csvreader.fieldnames)
     fields = ['Name', 'Roll']
@@ -69,15 +78,29 @@ def validate_candidates(candidate_file_stream: bytes):
     roll = []
     for row in csvreader:
         roll.append(row['Roll'])
+        roll_length = len(row['Roll'].strip())
+        name_length = len(row['Name'].strip())
+        if roll_length not in range(1,21):
+            return False
+        if name_length not in range(1,41):
+            return False
     if len(roll) != len(set(roll)):
         return False
+    if lab is None:
+        return False
+    if assessment is None:
+        if len(lab.clients) < len(roll):
+            return False
+    else:
+        if len(lab.clients) < (len(roll) + len(assessment.candidates)):
+            return False
     return True
 
 def insert_candidates(candidate_file_stream: bytes, assessment: Assessment):
     csvreader = csv.DictReader(StringIO(candidate_file_stream.decode('UTF-8')))
     for row in csvreader:
-        roll = row['Roll']
-        name = row['Name']
+        roll = row['Roll'].strip()
+        name = row['Name'].strip()
         Candidate.insert_candidate(name, roll, assessment)
 
     return True

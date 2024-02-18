@@ -11,12 +11,16 @@ def delete(pk):
     assessment = db.get_or_404(Assessment, pk)
     if not current_user.is_admin:
         if current_user.lab != assessment.lab:
-            flash("Assessment can be deleted, which are held at your lab.", "error")
+            flash("Assessment cannot be deleted which are not held at your lab.", "error")
             return redirect(url_for('assessments.index'))
 
-    if assessment.current_status not in [AssessmentStatus.INIT, AssessmentStatus.COMPLETE]:
-        flash("Assessment can be deleted only at initial or complete phase.", "error")
-        return redirect(url_for("assessments.index"))
+    if assessment.current_status not in [
+        AssessmentStatus.INIT,
+        AssessmentStatus.COMPLETE,
+        AssessmentStatus.EXPIRED
+    ]:
+        flash("Assessment can be deleted only at initial, complete or expired phase.", "error")
+        return redirect(url_for("assessments.assessment_view", pk=assessment.id))
     filename = assessment.media
     db.session.delete(assessment)
     db.session.commit()
