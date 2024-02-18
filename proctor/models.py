@@ -115,8 +115,10 @@ class Lab(db.Model):
         db.String(40), unique=True, nullable=False)
     user: Mapped["User"] = relationship(back_populates="lab")
     clients: Mapped[List["Client"]] = relationship(back_populates="lab")
-    assessments: Mapped[List["Assessment"]
-                        ] = relationship(back_populates="lab")
+    assessments: Mapped[List["Assessment"]] = relationship(
+        back_populates="lab",
+        cascade="all, delete-orphan"
+    )
     created_at: Mapped[TimeStamp]
 
     def __repr__(self):
@@ -181,7 +183,7 @@ class ClientSession(db.Model):
     client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
     client: Mapped["Client"] = relationship(back_populates="client_sessions")
     candidate_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("candidate.id"))
+        ForeignKey("candidate.id"), nullable=True)
     candidate: Mapped[Optional["Candidate"]] = relationship(
         back_populates="client_sessions")
 
@@ -194,10 +196,11 @@ class ClientSessionTLStatus(Enum):
     CC = "Client Connected"
     UC = "USB Device Connected"
     UD = "USB Device Disconnected"
-    CA = "Candidate Assigned"
-    CLI = "Candidate Logged In"
-    CLO = "Candidate Logged Out"
-    CRA = "Candidate Re-Assigned"
+    CAA = "Candidate Assigned"
+    CALI = "Candidate Logged In"
+    CALO = "Candidate Logged Out"
+    CAFREE = "Candidate Removed From Client"
+    CARA = "Candidate Re-Assigned"
     TR = "Termination Requested"
     CDWOTR = "Client Disconnected before Terminate Request"
     CDWRT = "Client Disconnected after Terminate Request"
@@ -228,6 +231,7 @@ class AssessmentStatus(Enum):
     ACTIVE = "active"
     BUFFER = "buffer"
     COMPLETE = "complete"
+    EXPIRED = "expire"
 
 
 class Assessment(db.Model):
@@ -252,9 +256,15 @@ class Assessment(db.Model):
     created_by_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     created_by: Mapped["User"] = relationship(back_populates="assessments")
     candidates: Mapped[List["Candidate"]] = relationship(
-        back_populates="assessment", cascade="all, delete-orphan")
+        back_populates="assessment",
+        order_by="Candidate.roll",
+        cascade="all, delete-orphan"
+    )
     assessment_timeline: Mapped[List["AssessmentTimeline"]] = relationship(
-        back_populates="assessment", cascade="all, delete-orphan")
+        back_populates="assessment",
+        cascade="all, delete-orphan",
+        order_by=desc("timestamp")
+    )
 
     def __repr__(self):
         return f"<Assessment {self.title}>"
@@ -312,16 +322,18 @@ class CandidateStatus(Enum):
     Candidate Status Enum.
 
     WAITING - Candidate created and waiting for Assignment.
-    PENDING - Candidate Submission is Pending.
-    SUBMITTED - Candidate Submitted his Work.
-    ACCEPTED - Candidate's Submission Accepted.
-    REJECTED - Candidate's Submission Rejected.
+    ASSIGNED - Candidate is assigned to a Client, waiting for Assessment Activation.
+    PENDING - Assessment is activated and Candidate submission is pending.
+    SUBMITTED - Candidate has submitted some work.
+    RESUBMIT - Candidate's work has been rejected and need to Resubmit his work.
+    VERIFIED - Candidate's work has been accepted. He/she can leave the client.
     """
     WAITING = "waiting"
+    ASSIGNED = "assigned"
     PENDING = "pending"
     SUBMITTED = "submitted"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
+    RESUBMIT = "resubmit"
+    VERIFIED = "verified"
 
 
 class Candidate(db.Model):
@@ -344,8 +356,10 @@ class Candidate(db.Model):
     assessment_id: Mapped[str] = mapped_column(ForeignKey("assessment.id"))
     assessment: Mapped["Assessment"] = relationship(
         back_populates="candidates")
-    client_sessions: Mapped[List["ClientSession"]
-                            ] = relationship(back_populates="candidate")
+    client_sessions: Mapped[List["ClientSession"]] = relationship(
+        back_populates="candidate",
+        order_by=desc("session_start_time")
+    )
     timeline: Mapped[List["CandidateTimeline"]] = relationship(
         back_populates="candidate", cascade="all, delete-orphan")
 
@@ -369,6 +383,25 @@ class Candidate(db.Model):
 
     def __repr__(self):
         return f"<Candidate {self.assessment.title} {self.name}>"
+
+    @property
+    def is_assigned(self):
+        return bool(self.client_sessions)
+
+    @property
+    def client_session(self) -> ClientSession:
+        if self.client_sessions:
+            return self.client_sessions[0]
+
+    def update_status(self, status: CandidateStatus, details: str = None):
+        self.current_status = status
+        tl = CandidateTimeline(
+            candidate_id = self.id,
+            status = status
+        )
+        if details:
+            tl.details = details
+        return tl
 
 
 class CandidateTimeline(db.Model):
