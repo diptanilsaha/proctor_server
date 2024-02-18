@@ -1,7 +1,7 @@
 """Proctor Server"""
 import os
 from flask import Flask
-from proctor.extensions import login_manager
+from proctor.extensions import login_manager, scheduler
 from proctor.config import Config
 from proctor.database import db, migrate
 from proctor.models import (
@@ -32,6 +32,7 @@ def create_app(config_class: Config = Config) -> Flask:
 
     init_db(app)
     init_login(app)
+    init_scheduler(app)
 
     register_blueprints(app)
 
@@ -56,6 +57,7 @@ def create_app(config_class: Config = Config) -> Flask:
 
 def init_db(app : Flask):
     """Initialize SQLAlchemy and Migrate"""
+    db.app = app
     db.init_app(app)
     migrate.init_app(app, db)
 
@@ -73,3 +75,7 @@ def register_blueprints(app: Flask):
     app.register_blueprint(auth_bp)
     app.register_blueprint(client_bp)
     app.register_blueprint(assess_bp)
+
+def init_scheduler(app: Flask):
+    scheduler.init_app(app)
+    scheduler.start()
