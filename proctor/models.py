@@ -27,6 +27,7 @@ class RoleName:
     """RoleName"""
     ADMIN = 'Administrator'
     LAB_MOD = 'Lab Moderator'
+    ROBOT = 'Robot'
 
 
 class Role(db.Model):
@@ -40,7 +41,7 @@ class Role(db.Model):
     @staticmethod
     def insert_roles():
         """Inserts 'Administrator' and 'Lab Moderator' role if doesn't exists on DB."""
-        roles = [RoleName.ADMIN, RoleName.LAB_MOD]
+        roles = [RoleName.ADMIN, RoleName.LAB_MOD, RoleName.ROBOT]
         for r in roles:
             role = db.session.query(Role).filter_by(name=r).first()
             if role is None:
