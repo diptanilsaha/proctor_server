@@ -1,18 +1,26 @@
-{% macro error(width='w-50') -%}
+{% macro error(width='w-50', position="top-0") -%}
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
-<div class="{{ width }} m-auto">
+<div class="toast-container position-fixed {{ position }} end-0 p-3">
 {% for category, message in messages %}
 {% if category == "error" %}
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
+<div class="toast fade show align-items-center bg-danger-subtle border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
+      </div>
+      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
 {% else %}
-<div class="alert alert-secondary alert-dismissible fade show" role="alert">
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
+<div class="toast fade show align-items-center text-bg-primary" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        {{ message }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
 {% endif %}
 {% endfor %}
 </div>
@@ -20,18 +28,21 @@
 {% endwith %}
 {%- endmacro %}
 
-{% macro modal(id, action_view, pk, name) -%}
+{% macro modal(id, action_view, pk, name, type="Delete", message="") -%}
 <div class="modal fade" tabindex="-1" role="dialog" id="{{ id }}">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content rounded-3 shadow">
             <div class="modal-body p-4 text-center">
-                <h5 class="mb-0">Delete <strong>{{ name }}</strong>?</h5>
+                <h5 class="mb-0">{{ type }} <strong>{{ name }}</strong>?</h5>
+                {% if message != "" %}
+                <p class="mt-2 mb-0">{{ message }}</p>
+                {% endif %}
             </div>
             <form action="{{ url_for(action_view, pk=pk) }}" method="post">
                 <div class="modal-footer flex-nowrap p-0">
                     <button type="submit"
                         class="btn btn-lg btn-link fs-6 text-decoration-none text-danger col-6 py-3 m-0 rounded-0 border-end">
-                        <strong>Delete</strong>
+                        <strong>Confirm</strong>
                     </button>
                     <button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 py-3 m-0 rounded-0"
                         data-bs-dismiss="modal">Cancel</button>
