@@ -66,7 +66,7 @@
                     <td>{{ client.created_at }}</td>
                     <td>
                         <div class="d-inline-block align-middle">
-                            {% if client.client_sessions|length > 0 and client.client_sessions[0].is_active %}
+                            {% if client.is_active %}
                             <!-- active pill -->
                             <div class="status-pills active-status">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-circle-fill" viewBox="0 0 16 16">
