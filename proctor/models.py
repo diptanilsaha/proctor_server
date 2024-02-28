@@ -171,6 +171,7 @@ class ClientSession(db.Model):
         db.String(32),
         primary_key=True,
         default=generate_uuid)
+    session_id: Mapped[str] = mapped_column(db.String(20), nullable=False)
     session_ip_addr: Mapped[str] = mapped_column(db.String(15), nullable=False)
     is_active: Mapped[bool] = mapped_column(
         db.Boolean, nullable=False, default=True)
