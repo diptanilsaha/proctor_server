@@ -35,15 +35,15 @@ def assign(pk):
 
     for client_session in active_client_sessions:
         client = client_session.client
-        client_session_choice.append(
+        client_session_choice.append((
             client_session.id,
             f"{client.name} ({client.clientname})"
-        )
+        ))
 
     form = AssignCandidateForm()
     candidate_was_assigned = False
     if candidate.is_assigned:
-        form = AssignCandidateForm(candidate)
+        form = AssignCandidateForm(obj=candidate)
         candidate_was_assigned = True
 
     form.client_session.choices = client_session_choice
