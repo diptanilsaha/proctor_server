@@ -44,7 +44,7 @@
                     <th scope="row">Client Assigned</th>
                     <td>
                         {% if candidate.is_assigned %}
-                        {{ assessment.client_session.client.name }}
+                        {{ candidate.client_session.client.name }}
                         <a class="btn btn-outline-dark btn-sm" href="{{ url_for('assessments.assign', pk=candidate.id) }}">Reassign</a>
                         {% else %}
                         <a class="btn btn-outline-dark btn-sm" href="{{ url_for('assessments.assign', pk=candidate.id) }}">Assign</a>
