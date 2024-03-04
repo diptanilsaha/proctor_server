@@ -4,6 +4,7 @@ from flask import flash, redirect, url_for, render_template
 from proctor.assessments.base import assess_bp
 from proctor.assessments.forms import AssignCandidateForm
 from proctor.models import (
+    AssessmentStatus,
     Client,
     Candidate,
     ClientSession,
@@ -22,6 +23,15 @@ def assign(pk):
         if current_user.lab != candidate.assessment.lab:
             flash("Sorry, you don't have access.", "error")
             return redirect(url_for('assessments.index'))
+
+    if candidate.assessment.current_status not in [
+        AssessmentStatus.INIT,
+        AssessmentStatus.ACTIVE,
+        AssessmentStatus.REG,
+    ]:
+        flash("Candidates can be assigned only if Assessment is in \
+              'Initial', 'Registration' or 'Active' Phase.", "error")
+        return redirect(url_for('assessments.candidate_view', pk=candidate.id))
 
     subq = db.select(Client).where(Client.lab_id == candidate.assessment.lab_id).subquery()
     active_client_sessions: List[ClientSession] = db.session.execute(
@@ -53,15 +63,43 @@ def assign(pk):
 
         client_session.candidate = candidate
 
-        ctl = candidate.update_status(
-            CandidateStatus.ASSIGNED,
-            f"Candidate got assigned to {client_session.client.name}"
-        )
         cl_status = ClientSessionTLStatus.CAA
         msg = f"{candidate.assessment.title}: {candidate.name} got assigned."
+        ctl_msg = f"Candidate got assigned to {client_session.client.name}"
+
+        db_models_objects = []
+
         if candidate_was_assigned:
+            # Reassigning message
             cl_status = ClientSessionTLStatus.CARA
             msg = f"{candidate.assessment.title}: {candidate.name} got re-assigned."
+            ctl_msg = f"Candidate got reassigned to {client_session.client.name}"
+
+            # freeing previous assigned client if previous client session is active
+            if candidate.client_session.is_active:
+                free_cl_status = ClientSessionTLStatus.CAFREE
+                free_cl_message = f"{candidate.assessment.title}: {candidate.name} got reassigned."
+                free_cl = ClientSessionTimeline(
+                    status = free_cl_status,
+                    details = free_cl_message,
+                    client_session = candidate.client_session
+                )
+                candidate.client_session.candidate = None
+                db_models_objects.append(free_cl)
+
+        ctl = candidate.update_status(
+            CandidateStatus.ASSIGNED,
+            ctl_msg
+        )
+        db_models_objects.append(ctl)
+
+        if candidate.assessment.current_status == AssessmentStatus.ACTIVE:
+            pending_ctl = candidate.update_status(
+                CandidateStatus.PENDING,
+                "Candidate submission is pending."
+            )
+            db_models_objects.append(pending_ctl)
+
 
         cstl = ClientSessionTimeline(
             status = cl_status,
@@ -69,7 +107,9 @@ def assign(pk):
             client_session = client_session
         )
 
-        db.session.add_all([ctl, cstl])
+        db_models_objects.append(cstl)
+
+        db.session.add_all(db_models_objects)
         db.session.commit()
         flash_msg = "Candidate assigned successfully."
         if candidate_was_assigned:

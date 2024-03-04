@@ -378,7 +378,8 @@ class Candidate(db.Model):
         )
         ctl = CandidateTimeline(
             status = CandidateStatus.WAITING,
-            candidate = candidate
+            candidate = candidate,
+            details = "Candidate created."
         )
         db.session.add_all([candidate, ctl])
         db.session.commit()

@@ -3,7 +3,12 @@ from flask_login import login_required, current_user
 from flask import redirect, url_for, flash
 from proctor.assessments.base import assess_bp
 from proctor.database import db
-from proctor.models import Assessment, AssessmentStatus, AssessmentTimeline
+from proctor.models import (
+    Assessment,
+    AssessmentStatus,
+    AssessmentTimeline,
+    CandidateStatus
+)
 
 @assess_bp.route('/update_status/<pk>/', methods=['POST'])
 @login_required
@@ -56,6 +61,18 @@ def update_status(pk):
     assessment.current_status = next_status
     db.session.add(atl)
     db.session.commit()
+
+    if next_status == AssessmentStatus.ACTIVE:
+        for candidate in assessment.candidates:
+            if candidate.is_assigned:
+                candidate_status = candidate.update_status(
+                    CandidateStatus.PENDING,
+                    details = "Assessment activated. Candidate Submission is pending."
+                )
+                db.session.add(candidate_status)
+                db.session.commit()
+
+
     flash("Assessment's Status Updated Successfully.")
     return redirect(url_for('assessments.assessment_view', pk=assessment.id))
 
