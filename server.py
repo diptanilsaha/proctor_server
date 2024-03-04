@@ -1,7 +1,7 @@
 """Proctor Server"""
 import os
 from flask import Flask
-from proctor.extensions import login_manager, scheduler
+from proctor.extensions import login_manager, scheduler, socketio
 from proctor.config import Config
 from proctor.database import db, migrate
 from proctor.models import (
@@ -21,10 +21,15 @@ from proctor.auth.base import auth_bp
 from proctor.clients.base import client_bp
 from proctor.assessments.base import assess_bp
 from proctor.cli import cli_bp
+from proctor.websocketio.base import socketio_bp
 
-def create_app(config_class: Config = Config) -> Flask:
+def create_app(
+    debug: bool = False,
+    config_class: Config = Config
+) -> Flask:
     """Proctor Flask App."""
     app = Flask(__name__)
+    app.debug = debug
     app.config.from_object(config_class)
 
     if not os.path.exists(app.config['ASSESSMENT_MEDIA']):
@@ -33,6 +38,7 @@ def create_app(config_class: Config = Config) -> Flask:
     init_db(app)
     init_login(app)
     init_scheduler(app)
+    init_socketio(app)
 
     register_blueprints(app)
 
@@ -76,7 +82,11 @@ def register_blueprints(app: Flask):
     app.register_blueprint(client_bp)
     app.register_blueprint(assess_bp)
     app.register_blueprint(cli_bp)
+    app.register_blueprint(socketio_bp)
 
 def init_scheduler(app: Flask):
     scheduler.init_app(app)
     scheduler.start()
+
+def init_socketio(app: Flask):
+    socketio.init_app(app)
