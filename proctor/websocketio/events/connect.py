@@ -1,31 +1,16 @@
-import jwt
-import ipaddress
-from flask import current_app, request
+from flask import request
 from proctor.extensions import socketio
 from proctor.database import db
 from proctor.models import (
-    Client,
     ClientSession,
     ClientSessionTimeline,
     ClientSessionTLStatus
 )
-
-def validate_ip_address(ip_address: str) -> bool:
-    try:
-        ipaddress.ip_address(ip_address)
-        return True
-    except ValueError:
-        return False
-
-def get_client_from_token(token: str) -> bool:
-    client_from_token = jwt.decode(
-        token,
-        key=current_app.config['SECRET_KEY'],
-        algorithms=["HS256",]
-    )
-    print(client_from_token)
-    client = db.session.get(Client, client_from_token['client_id'])
-    return client
+from proctor.utils import (
+    get_client_from_token,
+    validate_ip_address
+)
+from .disconnect import deactivate_client_session
 
 @socketio.on('connect')
 def connect(auth):
@@ -37,6 +22,9 @@ def connect(auth):
     if not validate_ip_address(auth['ip_address']):
         raise ConnectionRefusedError('IP Address not valid.')
 
+    if client.is_active:
+        client_session = client.client_sessions[0]
+        deactivate_client_session(client_session, reconnection=True)
 
     client_session = ClientSession()
     client_session.session_ip_addr = auth['ip_address']

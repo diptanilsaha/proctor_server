@@ -17,17 +17,27 @@ def disconnect():
     if client_session is None:
         return
 
+    deactivate_client_session(client_session)
+
+
+def deactivate_client_session(
+    client_session: ClientSession,
+    reconnection: bool = False
+) -> None:
     client_session.is_active = False
     client_session.session_end_time = datetime.datetime.now().replace(microsecond=0)
 
-    msg = f"{client_session.client.clientname} disconnected."
+    msg = f"{client_session.client.clientname} disconnected"
     status = ClientSessionTLStatus.CDWRT
     attention_required = False
 
     if not client_session.can_terminate:
-        msg = f"{client_session.client.clientname} disconnected without termination."
+        msg = f"{client_session.client.clientname} disconnected without termination"
         status = ClientSessionTLStatus.CDWOTR
         attention_required = True
+
+    if reconnection:
+        msg = msg + " during reconnection."
 
     cs_tl = ClientSessionTimeline()
     cs_tl.client_session = client_session
