@@ -46,6 +46,9 @@
                         {% if candidate.is_assigned %}
                         {{ candidate.client_session.client.name }}
                         <a class="btn btn-outline-dark btn-sm" href="{{ url_for('assessments.assign', pk=candidate.id) }}">Reassign</a>
+                        {% if candidate.assessment.current_status.value in ['initial', 'registration'] %}
+                        <a class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#removeModal">Remove assignment</a>
+                        {% endif %}
                         {% else %}
                         <a class="btn btn-outline-dark btn-sm" href="{{ url_for('assessments.assign', pk=candidate.id) }}">Assign</a>
                         {% endif %}
@@ -67,6 +70,14 @@ action_view='assessments.delete_candidate',
 pk=candidate.id,
 name=candidate.roll ~ '-' ~ candidate.name,
 message="This is an irreversible action and will result in permanently deleting candidate. Proceed with caution.") }}
+{{ macros.modal(
+    id="removeModal",
+    action_view="assessments.remove",
+    pk=candidate.id,
+    type="Remove Client Assignment for ",
+    name=candidate.name,
+    message="Click confirm to remove Client Session Assignment."
+) }}
 <div class="modal fade" tabindex="-1" role="dialog" id="historyModal">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">

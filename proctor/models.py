@@ -155,7 +155,7 @@ class Client(db.Model):
     )
 
     def __repr__(self):
-        return f"<Client f{self.clientname}>"
+        return f"<Client {self.clientname}>"
 
     @property
     def is_active(self):

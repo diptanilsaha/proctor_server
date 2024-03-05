@@ -17,6 +17,7 @@ from proctor.database import db
 @assess_bp.route('/candidate/assign/<pk>/', methods=['GET', 'POST'])
 @login_required
 def assign(pk):
+    """Assign/Re-assign Candidates to Active Client Session."""
     candidate: Candidate = db.get_or_404(Candidate, pk)
 
     if not current_user.is_admin:
@@ -25,12 +26,11 @@ def assign(pk):
             return redirect(url_for('assessments.index'))
 
     if candidate.assessment.current_status not in [
-        AssessmentStatus.INIT,
         AssessmentStatus.ACTIVE,
         AssessmentStatus.REG,
     ]:
         flash("Candidates can be assigned only if Assessment is in \
-              'Initial', 'Registration' or 'Active' Phase.", "error")
+              'Registration' or 'Active' Phase.", "error")
         return redirect(url_for('assessments.candidate_view', pk=candidate.id))
 
     subq = db.select(Client).where(Client.lab_id == candidate.assessment.lab_id).subquery()
@@ -128,3 +128,43 @@ def assign(pk):
         form=form,
         candidate=candidate
     )
+
+
+@assess_bp.route('/candidate/remove/<pk>/', methods=['POST'])
+@login_required
+def remove(pk):
+    """Remove assigned Client Sessions from assigned Candidates."""
+    candidate: Candidate = db.get_or_404(Candidate, pk)
+
+    if not current_user.is_admin:
+        if current_user.lab != candidate.assessment.lab:
+            flash("Sorry, you don't have access.", "error")
+            return redirect(url_for('assessments.index'))
+
+    if candidate.assessment.current_status not in [
+        AssessmentStatus.REG,
+    ]:
+        flash("Client Sessions can be removed from assigned candidates\
+              during 'Initial' or 'Registration' phase.", "error")
+        return redirect(url_for('assessments.candidate_view', pk=candidate.id))
+
+
+    client_session = candidate.client_session
+    client_session.candidate = None
+
+    ctl = candidate.update_status(
+        CandidateStatus.WAITING,
+        f"Candidate removed from {client_session.client.name}"
+    )
+
+    cstl = ClientSessionTimeline(
+        status = ClientSessionTLStatus.CAFREE,
+        details = f"{candidate.assessment.title}: {candidate.name} removed.",
+        client_session = client_session
+    )
+
+    db.session.add_all([ctl, cstl])
+    db.session.commit()
+
+    flash("Candidate removed from the assigned Client Session.")
+    return redirect(url_for("assessments.candidate_view", pk=candidate.id))
