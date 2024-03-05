@@ -18,12 +18,14 @@ def disconnect():
         return
 
     deactivate_client_session(client_session)
+    db.session.commit()
 
 
 def deactivate_client_session(
     client_session: ClientSession,
     reconnection: bool = False
 ) -> None:
+    """Deactivates Client Session. Please commit after using this method."""
     client_session.is_active = False
     client_session.session_end_time = datetime.datetime.now().replace(microsecond=0)
 
@@ -46,4 +48,3 @@ def deactivate_client_session(
     cs_tl.requires_attention = attention_required
 
     db.session.add(cs_tl)
-    db.session.commit()
