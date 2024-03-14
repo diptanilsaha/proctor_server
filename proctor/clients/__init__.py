@@ -3,7 +3,6 @@ from .views import (
     index,
     client,
     delete,
-    register
 )
 
 __all__ = [
@@ -11,5 +10,4 @@ __all__ = [
     "index",
     "client",
     "delete",
-    "register",
 ]
