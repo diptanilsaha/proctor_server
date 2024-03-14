@@ -44,3 +44,13 @@ def validate_ip_address(ip_address: str) -> bool:
         return True
     except ValueError:
         return False
+
+def remove_submission_media(filename: str) -> bool:
+    """Remove Assessment Media on deletion."""
+    try:
+        os.remove(
+            os.path.join(current_app.config['SUBMISSION_MEDIA'], filename)
+        )
+    except OSError:
+        return False
+    return True
