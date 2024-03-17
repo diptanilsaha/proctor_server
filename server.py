@@ -23,6 +23,7 @@ from proctor.assessments.base import assess_bp
 from proctor.cli import cli_bp
 from proctor.api.base import api_bp
 from proctor.websocketio.base import socketio_bp
+from proctor.sessions.base import sessions_bp
 
 def create_app(
     debug: bool = False,
@@ -85,6 +86,7 @@ def register_blueprints(app: Flask):
     app.register_blueprint(cli_bp)
     app.register_blueprint(socketio_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(sessions_bp)
 
 def init_scheduler(app: Flask):
     scheduler.init_app(app)

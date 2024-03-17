@@ -108,7 +108,7 @@
                             {% for session in client.client_sessions %}
                             <tr class="align-middle">
                                 <td scope="col">
-                                    <a href="#" class="link link-dark">{{ session.id }}</a>
+                                    <a href="{{ url_for('sessions.session', session_id=session.id) }}" class="link link-dark">{{ session.id }}</a>
                                 </td>
                                 <td>{{ session.session_ip_addr }}</td>
                                 <td>{{ session.session_start_time }}</td>

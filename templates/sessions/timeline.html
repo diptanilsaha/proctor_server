@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'clients' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4 mb-2">
+        <h1 class="mb-0"><strong>Client Session Timeline</strong></h1>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- breadcrumb -->
+    <div class="mx-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('clients.index') }}">Clients</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('clients.client_view', clientname=client_session.client.clientname) }}">{{ client_session.client.clientname }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('sessions.session', session_id=client_session.id) }}">Session {{ client_session.id }}</a></li>
+                <li class="breadcrumb-item" aria-current="page">Timeline</li>
+            </ol>
+        </nav>
+    </div>
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
+    <div class="container">
+        <h4 class="mx-3 my-4">Timeline - Session {{ client_session.id }}</h4>
+    </div>
+    <div class="row justify-content-center px-5 table-scroll">
+        <table class="table table-hover text-center">
+            <thead class="z-1 position-sticky top-0">
+                <tr class="table-secondary">
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Attended by</th>
+                    <th scope="col">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tl in cs_timeline %}
+                <tr>
+                    <td>{{ tl.timestamp }}</td>
+                    <td>{{ tl.status.value }}</td>
+                    <td>
+                        {% if tl.requires_attention %}
+                        {% if tl.attended_by %}
+                        {{ tl.attended_by.username }}
+                        {% else %}
+                        Nobody attended.
+                        {% endif %}
+                        {% else %}
+                        Attention not required.
+                        {% endif %}
+                    </td>
+                    <td>{{ tl.details }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
