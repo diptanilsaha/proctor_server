@@ -25,7 +25,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="mb-0">Session {{ client_session.id }}</h4>
             {% if client_session.is_active and not client_session.can_terminate %}
-            <button class="btn btn-dark">Terminate</button>
+            <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#terminateModal">Terminate</button>
             {% endif %}
         </div>
         <table class="table">
@@ -53,4 +53,13 @@
         <a href="{{ url_for('sessions.timeline', session_id=client_session.id) }}" class="btn btn-outline-dark">Timeline</a>
     </div>
 </div>
+{% import 'macros.html' as macros %}
+{{ macros.modal(
+    id="terminateModal",
+    action_view="sessions.terminate",
+    pk=client_session.id,
+    name=client_session.id,
+    type="Terminate",
+    message="Are you sure, you want to terminate " ~ client_session.id ~ " of " ~ client_session.client.clientname ~ "?"
+) }}
 {% endblock %}

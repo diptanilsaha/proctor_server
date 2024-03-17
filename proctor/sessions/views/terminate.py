@@ -15,11 +15,11 @@ def terminate(pk):
 
     if not client_session.is_active:
         flash('Only active clients can be allowed to Terminate.', 'error')
-        return redirect(url_for('sessions.timeline', session_id=pk))
+        return redirect(url_for('sessions.session', session_id=pk))
 
     if client_session.can_terminate:
         flash("Client Session already marked as 'Allowed to Terminate'", 'error')
-        return redirect(url_for('sessions.timeline', session_id=pk))
+        return redirect(url_for('sessions.session', session_id=pk))
 
     client_session.can_terminate = True
 
@@ -31,4 +31,4 @@ def terminate(pk):
     db.session.add(cs_tl)
     db.session.commit()
 
-    return redirect(url_for('session.timeline', session_id=pk))
+    return redirect(url_for('session.session', session_id=pk))
