@@ -24,7 +24,7 @@
         <div class="d-flex justify-content-between align-items-center mb-2">
             <h3 class="ms-2 me-3 mb-0">{{ assessment.title }}</h3>
             <div class="d-flex align-items-center">
-                <p class="mb-0"><strong>current status:</strong> {{ assessment.current_status.value }}</p>
+                <p class="mb-0"><strong>current status:</strong> {{ assessment.current_status.name }}</p>
                 <a class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#historyModal">View History</a>
             </div>
         </div>
@@ -131,7 +131,7 @@ work. Proceed with Caution.") }}
                             {% for timeline in assessment.assessment_timeline %}
                             <tr class="align-middle">
                                 <td>{{ timeline.timestamp }}</td>
-                                <td>{{ timeline.status.value }}</td>
+                                <td>{{ timeline.status.name }}</td>
                                 <td>{{ timeline.atl_created_by.username }}</td>
                             </tr>
                             {% endfor %}
