@@ -42,13 +42,7 @@
                         </a>
                     </li>
                     <li class="nav-item my-1">
-                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'submissions' }}">
-                            <img class="pe-none me-2" src="{{ url_for('static', filename='icons/assignment_turned_in.svg') }}" width="24" height="24">
-                            <span class="h5 mb-0">Submissions</span>
-                        </a>
-                    </li>
-                    <li class="nav-item my-1">
-                        <a href="#" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'monitor' }}">
+                        <a href="{{ url_for('monitor.index') }}" class="nav-link d-flex align-items-center text-white {{ 'active' if active_page == 'monitor' }}">
                             <img class="pe-none me-2" src="{{ url_for('static', filename='icons/sensor.svg') }}" width="24" height="24">
                             <span class="h5 mb-0">Monitor</span>
                         </a>

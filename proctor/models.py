@@ -195,6 +195,14 @@ class ClientSession(db.Model):
     def __repr__(self):
         return f"<ClientSession {self.id} of {self.client}>"
 
+    @property
+    def requires_attention(self):
+        for tl in self.session_timeline:
+            if tl.requires_attention and tl.attended_by is None:
+                return True
+
+        return False
+
 
 class ClientSessionTLStatus(Enum):
     """ClientSession Timeline Status"""

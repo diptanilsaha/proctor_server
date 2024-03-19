@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'monitor' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4 my-2">
+        <a href="{{ url_for('monitor.index') }}" class="link link-dark text-decoration-none">
+            <div class="d-flex align-items-baseline">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z"/></svg>
+                <h1 class="mb-0">Monitor</h1>
+            </div>
+        </a>
+        <div class="d-flex flex-column align-items-end">
+            <span><strong>Assessment Title: </strong>{{ assessment.title }}</span>
+            <span><strong>Current Status: </strong><span id="assessmentStatus">Loading</span></span>
+        </div>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- end of header -->
+    <div class="container text-center my-3">
+        <div class="row row-cols-5 g-3 text-white">
+            <div class="col">
+                <div class="border shadow-sm rounded p-2 bg-danger">
+                    <h3 class="text-center" id="reqAttentionCount">NA</h3>
+                    <p class="text-center mb-0">Requires attention</p>
+                </div>
+            </div>
+            <div class="col">
+                <div class="border shadow-sm rounded p-2 bg-info text-dark">
+                    <h3 class="text-center" id="submittedCount">NA</h3>
+                    <p class="text-center mb-0">Submitted</p>
+                </div>
+            </div>
+            <div class="col">
+                <div class="border shadow-sm rounded p-2 bg-warning text-dark">
+                    <h3 class="text-center" id="resubmitCount">NA</h3>
+                    <p class="text-center mb-0">Resubmit</p>
+                </div>
+            </div>
+            <div class="col">
+                <div class="border shadow-sm rounded p-2 bg-secondary-subtle text-dark">
+                    <h3 class="text-center" id="pendingCount">NA</h3>
+                    <p class="text-center mb-0">Pending</p>
+                </div>
+            </div>
+            <div class="col">
+                <div class="border shadow-sm rounded p-2 bg-success">
+                    <h3 class="text-center" id="verifiedCount">NA</h3>
+                    <p class="text-center mb-0">Verified</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- table of labs -->
+    <div class="row justify-content-center px-5 table-scroll">
+        <table class="table table-hover">
+            <thead class="z-1 position-sticky top-0">
+                <tr>
+                    <th scope="col">Candidate</th>
+                    <th scope="col">Client</th>
+                    <th scope="col">Client Status</th>
+                    <th scope="col">Submission Status</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody id="monitorTable">
+                <tr class="align-middle table-warning">
+                    <td colspan="5" class="text-center" id="tableMessage">Waiting for data.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-around align-items-center mt-2">
+        <span class="small">Total number of candidates: {{ assessment.candidates|length }}</span>
+        <a href="{{ url_for('assessments.assessment_view', pk=assessment.id) }}" class="btn btn-sm btn-success" target="_blank">Go back to assessment</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block js_script %}
+<script>
+    const reqAttentionCount = document.getElementById('reqAttentionCount')
+    const submittedCount = document.getElementById('submittedCount')
+    const resubmitCount = document.getElementById('resubmitCount')
+    const pendingCount = document.getElementById('pendingCount')
+    const verifiedCount = document.getElementById('verifiedCount')
+
+    function addMessage2Table(message) {
+        const msgRow = document.getElementById('tableMessage');
+        msgRow.innerText = message
+    }
+
+    function setAssessmentStatus(data) {
+        const assessmentStatus = document.getElementById('assessmentStatus')
+        assessmentStatus.innerText = data["current_status"]
+    }
+
+    function updateStat(data) {
+        reqAttentionCount.innerText = data['reqAttention']
+        submittedCount.innerText = data['submitted']
+        resubmitCount.innerText = data['resubmit']
+        pendingCount.innerText = data['pending']
+        verifiedCount.innerText = data['verified']
+    }
+
+    function createRow(data) {
+        const tableRowElementStr = `
+        <td>${data['candidateDetails']}</td>
+        <td>${data['clientName']}</td>
+        <td>${data['clientStatus']}</td>
+        <td>${data['candidateStatus']}</td>
+        <td>
+            <div class="d-inline-flex">
+                <a href="${data['candidateUrl']}" class="btn btn-sm btn-primary me-2" target="_blank">Candidate</a>
+                <a href="${data['clientTimelineUrl']}" class="btn btn-sm btn-outline-primary" target="_blank">Client Session Timeline</a>
+            </div>
+        </td>
+    `
+        const requiresAttn = data['requiresAttention']
+        const cdStatus = data['assessmentStatus']
+        const row = document.createElement("tr")
+        row.innerHTML = tableRowElementStr
+        row.classList.add("align-middle")
+        if (requiresAttn) {
+            row.classList.add("table-danger")
+        } else {
+            if (cdStatus === "VERIFIED") {
+                row.classList.add("table-success")
+            } else if (cdStatus === "RESUBMIT") {
+                row.classList.add("table-warning")
+            } else if (cdStatus === "SUBMITTED") {
+                row.classList.add("table-info")
+            }
+        }
+        return row
+    }
+
+    function addData2Table(data) {
+        const tableBody = document.getElementById("monitorTable");
+        tableBody.innerHTML = ""
+        data['candidates'].forEach(element => {
+            tableBody.appendChild(createRow(element))
+        });
+    }
+
+    function fetchStatus() {
+        fetch('data')
+            .then(function(response) {
+                return response.json()
+            })
+            .then(function (data) {
+                setAssessmentStatus(data['assessment'])
+                if(data['live'].hasOwnProperty('candidates')) {
+                    addData2Table(data['live'])
+                    updateStat(data['live']['count'])
+                } else {
+                    addMessage2Table(data['live']['message'])
+                }
+            })
+            .catch(function (err) {
+                console.log('error: ' + err)
+            });
+    }
+
+    window.addEventListener('load', function () {
+        // Your document is loaded.
+        var fetchInterval = 3000; // 5 seconds.
+
+        // Invoke the request every 5 seconds.
+        setInterval(fetchStatus, fetchInterval);
+    });
+</script>
+{% endblock %}
