@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% set active_page = 'clients' %}
+
+{% block main_content %}
+<div class="container mt-4 px-4">
+    <!-- header -->
+    <div class="d-flex justify-content-between align-items-center mx-4 mb-2">
+        <h1 class="mb-0"><strong>Client Session</strong></h1>
+    </div>
+    <hr class="mt-0 mb-3">
+    <!-- breadcrumb -->
+    <div class="mx-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('clients.index') }}">Clients</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('clients.client_view', clientname=client_session.client.clientname) }}">{{ client_session.client.clientname }}</a></li>
+                <li class="breadcrumb-item" aria-current="page">Session {{ client_session.id }}</li>
+            </ol>
+        </nav>
+    </div>
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
+    <div class="container w-75 mx-auto p-4 border">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Session {{ client_session.id }}</h4>
+            {% if client_session.is_active and not client_session.can_terminate %}
+            <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#terminateModal">Terminate</button>
+            {% endif %}
+        </div>
+        <table class="table">
+            <tbody class="align-middle">
+                <tr>
+                    <th scope="row">Client</th>
+                    <td>
+                        <a href="{{ url_for('clients.client_view', clientname=client_session.client.clientname) }}">{{ client_session.client.clientname }}</a>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">IP Address</th>
+                    <td>{{ client_session.session_ip_addr }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Start Time</th>
+                    <td>{{ client_session.session_start_time }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">End Time</th>
+                    <td>{{ client_session.session_end_time }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <a href="{{ url_for('sessions.timeline', session_id=client_session.id) }}" class="btn btn-outline-dark">Timeline</a>
+    </div>
+</div>
+{% import 'macros.html' as macros %}
+{{ macros.modal(
+    id="terminateModal",
+    action_view="sessions.terminate",
+    pk=client_session.id,
+    name=client_session.id,
+    type="Terminate",
+    message="Are you sure, you want to terminate " ~ client_session.id ~ " of " ~ client_session.client.clientname ~ "?"
+) }}
+{% endblock %}

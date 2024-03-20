@@ -102,7 +102,7 @@ message="This is an irreversible action and will result in permanently deleting 
                             {% for timeline in candidate.timeline %}
                             <tr class="align-middle">
                                 <td>{{ timeline.timestamp }}</td>
-                                <td>{{ timeline.status.value }}</td>
+                                <td>{{ timeline.status.name }}</td>
                                 <td>{{ timeline.details }}</td>
                             </tr>
                             {% endfor %}

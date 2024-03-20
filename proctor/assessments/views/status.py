@@ -9,6 +9,7 @@ from proctor.models import (
     AssessmentTimeline,
     CandidateStatus
 )
+from proctor.assessments.utils import _can_assessment_be_active
 
 @assess_bp.route('/update_status/<pk>/', methods=['POST'])
 @login_required
@@ -28,6 +29,11 @@ def update_status(pk):
         return redirect(url_for('assessments.assessment_view', pk=assessment.id))
 
     time_now = datetime.datetime.now()
+
+    if current_status == AssessmentStatus.INIT:
+        if not _can_assessment_be_active(assessment):
+            flash("Two assessments cannot be live simultaneously.", "error")
+            return redirect(url_for('assessments.assessment_view', pk=assessment.id))
 
     if current_status == AssessmentStatus.REG:
         if len(assessment.candidates) == 0:

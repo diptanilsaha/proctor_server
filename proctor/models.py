@@ -179,9 +179,12 @@ class ClientSession(db.Model):
         db.Boolean, nullable=False, default=False)
     session_start_time: Mapped[TimeStamp]
     session_end_time: Mapped[datetime.datetime] = mapped_column(
-        db.DateTime, nullable=True, server_default=func.CURRENT_TIMESTAMP())
+        db.DateTime, nullable=True)
     session_timeline: Mapped[List["ClientSessionTimeline"]] = relationship(
-        back_populates="client_session", cascade="all, delete-orphan")
+        back_populates="client_session",
+        cascade="all, delete-orphan",
+        order_by=desc("timestamp")
+    )
     client_id: Mapped[str] = mapped_column(ForeignKey("client.id"))
     client: Mapped["Client"] = relationship(back_populates="client_sessions")
     candidate_id: Mapped[Optional[int]] = mapped_column(
@@ -191,6 +194,14 @@ class ClientSession(db.Model):
 
     def __repr__(self):
         return f"<ClientSession {self.id} of {self.client}>"
+
+    @property
+    def requires_attention(self):
+        for tl in self.session_timeline:
+            if tl.requires_attention and tl.attended_by is None:
+                return True
+
+        return False
 
 
 class ClientSessionTLStatus(Enum):

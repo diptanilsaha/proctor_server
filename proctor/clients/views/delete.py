@@ -11,7 +11,7 @@ from proctor.models import Client
 def delete_client(pk):
     client: Client = db.get_or_404(Client, pk)
     lab = client.lab
-    if client.client_sessions and client.client_sessions[0].is_active:
+    if client.is_active:
         flash("Active Client cannot be deleted.", 'error')
         return redirect(url_for(
             'clients.client_view', clientname=client.clientname
