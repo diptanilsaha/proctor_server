@@ -23,6 +23,7 @@ from proctor.assessments.base import assess_bp
 from proctor.cli import cli_bp
 from proctor.api.base import api_bp
 from proctor.websocketio.base import socketio_bp
+from proctor.candidate.base import candidate_bp
 from proctor.sessions.base import sessions_bp
 from proctor.monitor.base import monitor_bp
 
@@ -37,6 +38,9 @@ def create_app(
 
     if not os.path.exists(app.config['ASSESSMENT_MEDIA']):
         os.mkdir(app.config['ASSESSMENT_MEDIA'])
+
+    if not os.path.exists(app.config['SUBMISSION_MEDIA']):
+        os.mkdir(app.config['SUBMISSION_MEDIA'])
 
     init_db(app)
     init_login(app)
@@ -87,8 +91,6 @@ def register_blueprints(app: Flask):
     app.register_blueprint(cli_bp)
     app.register_blueprint(socketio_bp)
     app.register_blueprint(api_bp)
-    app.register_blueprint(sessions_bp)
-    app.register_blueprint(monitor_bp)
 
 def init_scheduler(app: Flask):
     scheduler.init_app(app)

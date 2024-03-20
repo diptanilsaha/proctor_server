@@ -13,6 +13,7 @@ class Config:
         or 'sqlite:///' + os.path.join(ROOT_DIR, 'proctor.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     ASSESSMENT_MEDIA = os.path.join(ROOT_DIR, 'assessment_media')
+    SUBMISSION_MEDIA = os.path.join(ROOT_DIR, 'submission_media')
     JOBS = [{
         "id": "expire_assessment",
         "replace_existing": True,

@@ -1,0 +1,51 @@
+{% extends 'candidate/base.html' %}
+
+{% block content %}
+<header class="flex-shrink-0">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center py-3 px-3 mb-4 border-bottom">
+            <h3 class="mb-0">Your Institute</h3>
+            <div class="d-flex flex-column align-items-end">
+                <p class="mb-0"><strong>Client: </strong>{{ client_session.client.name }}</p>
+                <p class="mb-0"><strong>Client Session: </strong>{{ client_session.id }}</p>
+            </div>
+        </div>
+    </div>
+</header>
+<main>
+    <div class="container">
+        {% import 'macros.html' as macros %}
+        {{ macros.error() }}
+        <div class="w-75 mx-auto px-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">{{ candidate.assessment.title }}</h2>
+                <div class="py-1 px-2 border border-dark rounded text-white" style="background-color: rgb(48, 183, 14);">
+                    <strong>VERIFIED</strong>
+                </div>
+            </div>
+            <hr>
+            <h5>Instruction/Description</h5>
+            <p>{{ candidate.assessment.description }}</p>
+
+            <a href="" class="btn btn-dark mb-3"><strong>Download Question Paper</strong></a>
+
+            {% if candidate.current_status.name == 'SUBMITTED' or candidate.current_status.name == 'VERIFIED' %}
+            <a href="" class="btn btn-success mb-3"><strong>View your work</strong></a>
+            {% endif %}
+
+            {% if form is defined %}
+            <div class="px-5 py-4 border rounded">
+                <h3>Turn in your work</h3>
+                <form action="{{ url_for('candidate.assessment_view', pk=candidate.id) }}" method="post">
+                    <div class="mb-3">
+                        {{ form.submission.label(class_="form-label") }}
+                        {{ form.submission(class_="shadow-sm w-100 form-control", accept=".zip,.rar,.7zip")}}
+                    </div>
+                    <button type="submit" class="btn btn-success">Turn In</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+{% endblock %}
