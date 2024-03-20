@@ -4,6 +4,7 @@ from sqlalchemy import and_
 from proctor.models import (
     ClientSession,
     Assessment,
+    Candidate,
     AssessmentStatus,
     CandidateStatus
 )
@@ -12,20 +13,38 @@ from proctor.database import db
 from proctor.utils import generate_media_name
 from proctor.candidate.base import candidate_bp
 
-@candidate_bp.route('/assessment/<pk>/', methods=['GET', 'POST'])
+@candidate_bp.route('/<pk>/', methods=['GET', 'POST'])
 def assessment_view(pk: str):
-    assessment = db.get_or_404(Assessment, pk)
-
     client_session = _get_remote_client(request.remote_addr)
 
-    if _verify_client_session_and_assessment(
-        assessment, client_session
-    ):
+    if not client_session:
+        return render_template(
+            "candidate/client_not_found.html",
+            title="Client not found"
+        )
+
+    candidate = db.get_or_404(Candidate, pk)
+
+    verify = _verify_client_session_and_assessment(
+        candidate.assessment, client_session
+    )
+    if verify:
+        flash(verify, 'error')
         return redirect(url_for('candidate.index'))
 
     candidate = client_session.candidate
 
     if candidate.current_status in [CandidateStatus.PENDING, CandidateStatus.RESUBMIT]:
+
+        if candidate.assessment.current_status in [
+            AssessmentStatus.INIT,
+            AssessmentStatus.REG,
+            AssessmentStatus.COMPLETE,
+            AssessmentStatus.EXPIRED
+        ]:
+            flash("Sorry, assessment is not active.", "error")
+            return redirect(url_for('candidate.index'))
+
         form = CandidateAssessmentForm()
 
         if form.validate_on_submit():
@@ -44,19 +63,21 @@ def assessment_view(pk: str):
             db.session.commit()
 
             flash('Submitted successfully!')
-            return redirect(url_for('candidate.assessment_view', pk=assessment.id))
+            return redirect(url_for('candidate.assessment_view', pk=candidate.id))
 
         return render_template(
             "candidate/assessment.html",
             title='Candidate Assessment',
-            assessment=assessment,
+            candidate=candidate,
+            client_session=client_session,
             form=form
         )
 
     return render_template(
         "candidate/assessment.html",
         title='Candidate Assessment',
-        assessment=assessment,
+        candidate=candidate,
+        client_session=client_session,
     )
 
 
@@ -75,23 +96,19 @@ def _get_remote_client(ip_addr: str) -> None | ClientSession:
 def _verify_client_session_and_assessment(
     assessment: Assessment,
     client_session: ClientSession
-) -> bool :
-    flag = True
+) -> str | None:
 
     if not client_session:
-        flag = False
-        flash('ProctorClient not activated.', 'error')
+        return 'ProctorClient not activated.'
 
     if client_session.candidate.assessment != assessment:
-        flag = False
-        flash('Candidate is not assigned to that assignment.', 'error')
+        return 'Candidate is not assigned to that assignment.'
 
     if assessment.current_status in [AssessmentStatus.INIT, AssessmentStatus.REG]:
-        flag = False
-        flash('Assessment is not active yet.', 'error')
+        return 'Assessment is not active yet.'
+
+    if assessment.current_status in [AssessmentStatus.COMPLETE, AssessmentStatus.EXPIRED]:
+        return 'Assessment either completed or expired.'
 
     if not client_session.is_active:
-        flag = False
-        flash('ProctorClient is not active.', 'error')
-
-    return flag
+        return 'ProctorClient is not active.'

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}"></link>
+    {% block stylesheets %}
+    {% endblock %}
+    <title>{% block title %}{{ title }} | Proctor{% endblock %}</title>
+</head>
+<body>
+    <div class="d-none d-xl-block">
+        {% block content %}
+        {% endblock %}
+    </div>
+    <div class="d-xl-none">
+        <div class="vh-100 container d-flex justify-content-center align-items-center">
+            <div class="w-75 text-center">
+                <h1>Small Screen Detected!</h1>
+                <p class="mb-0">This webpage is best viewed and available only on screens equal to or wider than 1200px. Sorry for the inconvenience.</p>
+            </div>
+        </div>
+    </div>
+    {% block js_script %}
+    {% endblock %}
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+</body>

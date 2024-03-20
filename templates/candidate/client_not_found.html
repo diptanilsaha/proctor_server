@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}"></link>
+    {% block stylesheets %}
+    {% endblock %}
+    <title>{% block title %}{{ title }} | Proctor{% endblock %}</title>
+</head>
+<body class="vh-100 container d-flex justify-content-center align-items-center">
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
+    <main class="border shadow w-75 m-auto">
+        <div class="px-5 py-4">
+            <h1>Uh-oh!</h1>
+            <p>Hey there, seems like ProctorClient App is not working on this PC. Contact your lab admin for further assistance.</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-secondary"><span>IP Address:</span> {{ request.remote_addr }}</small>
+                <small class="text-secondary"><strong>Your Institute</strong></small>
+            </div>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>
