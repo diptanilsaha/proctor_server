@@ -9,6 +9,8 @@
         <h1 class="mb-0"><strong>Monitor</strong></h1>
     </div>
     <hr class="mt-0 mb-3">
+    {% import 'macros.html' as macros %}
+    {{ macros.error() }}
     <h3 class="text-center">Live Assessments</h3>
     <div class="container w-75 my-3">
         {% if assessments|length == 0 %}

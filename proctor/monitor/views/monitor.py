@@ -1,6 +1,6 @@
 from typing import List
-from flask import render_template, jsonify, url_for
-from flask_login import login_required
+from flask import render_template, jsonify, url_for, redirect, flash
+from flask_login import login_required, current_user
 from proctor.monitor.base import monitor_bp
 from proctor.models import (
     Assessment,
@@ -15,6 +15,11 @@ from proctor.assessments.utils import _check_assessment_is_active
 @login_required
 def monitor_assessment_view(pk: str):
     assessment = db.get_or_404(Assessment, pk)
+
+    if not current_user.is_admin:
+        if assessment.lab != current_user.lab:
+            flash("You don't have permission.", "error")
+            return redirect(url_for('monitor.index'))
 
     return render_template(
         "monitor/monitor.html",
