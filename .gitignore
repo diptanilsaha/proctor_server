@@ -161,3 +161,4 @@ cython_debug/
 *.db
 migrations/
 assessment_media/
+submission_media/

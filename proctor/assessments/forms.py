@@ -7,14 +7,16 @@ from wtforms import (
     SelectField,
     IntegerField,
     TextAreaField,
-    DateTimeLocalField
+    DateTimeLocalField,
+    RadioField
 )
 from wtforms.validators import (
     DataRequired,
     Length,
     Optional,
     NumberRange,
-    ValidationError
+    ValidationError,
+    InputRequired
 )
 from proctor.database import db
 from proctor.models import Lab, Assessment, ClientSession
@@ -126,3 +128,10 @@ class AssignCandidateForm(FlaskForm):
 
         if client.candidate is not None:
             raise ValidationError("Candidate is already assigned on the selected Client.")
+
+class AcceptRejectSubmissionForm(FlaskForm):
+    accept_reject = RadioField(
+        'Accept/Reject Submission',
+        validators=[InputRequired()],
+        choices=[(1, 'Accept'), (0, 'Reject')]
+    )

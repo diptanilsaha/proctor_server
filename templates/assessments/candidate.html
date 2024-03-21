@@ -54,6 +54,25 @@
                         {% endif %}
                     </td>
                 </tr>
+                {% if candidate.submission_media_url %}
+                <tr>
+                    <th scope="row">Candidate Submission</th>
+                    <td>
+                        <div class="d-flex flex-column">
+                            <a href="{{ url_for('candidate.submission_file', filename=candidate.submission_media_url) }}" class="btn btn-sm btn-outline-primary mb-2">View Submission Media</a>
+                            {% if form is defined %}
+                            <form action="{{ url_for('assessments.candidate_view', pk=candidate.id) }}" class="mx-auto" method="post">
+                                {{ form.csrf_token }}
+                                {% for subfield in form.accept_reject %}
+                                {{ subfield(required='required') }} {{ subfield.label }}
+                                {% endfor %}
+                                <button type="submit" class="btn btn-sm btn-primary">Submit</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
             </tbody>
         </table>
         <!-- <a class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#sessionModal">view sessions</a> -->

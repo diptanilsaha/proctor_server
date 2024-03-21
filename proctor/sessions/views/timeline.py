@@ -17,8 +17,7 @@ def timeline(session_id):
     # timestamp of the row is less than 60 minutes then the first user who visits the
     # timeline page is marked as the user attended for the row which requires attention.
     for row in cs_timeline:
-        if row.requires_attention and row.attended_by is None and \
-            datetime.datetime.now() - row.timestamp < datetime.timedelta(minutes=60):
+        if row.requires_attention and row.attended_by is None:
             row.attended_by = current_user
 
     db.session.commit()

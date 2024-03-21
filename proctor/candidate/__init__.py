@@ -1,9 +1,11 @@
 from .views import (
     assessment,
-    index
+    index,
+    files
 )
 
 __all__ = [
     "assessment",
-    "index"
+    "index",
+    "files"
 ]

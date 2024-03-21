@@ -87,13 +87,15 @@ def assign(pk):
                 candidate.client_session.candidate = None
                 db_models_objects.append(free_cl)
 
-        ctl = candidate.update_status(
-            CandidateStatus.ASSIGNED,
-            ctl_msg
-        )
-        db_models_objects.append(ctl)
+        if candidate.current_status == CandidateStatus.WAITING:
+            ctl = candidate.update_status(
+                CandidateStatus.ASSIGNED,
+                ctl_msg
+            )
+            db_models_objects.append(ctl)
 
-        if candidate.assessment.current_status == AssessmentStatus.ACTIVE:
+        if candidate.assessment.current_status == AssessmentStatus.ACTIVE \
+            and candidate.current_status == CandidateStatus.ASSIGNED:
             pending_ctl = candidate.update_status(
                 CandidateStatus.PENDING,
                 "Candidate submission is pending."

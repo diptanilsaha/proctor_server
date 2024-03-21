@@ -32,8 +32,6 @@ def assessment_view(pk: str):
         flash(verify, 'error')
         return redirect(url_for('candidate.index'))
 
-    candidate = client_session.candidate
-
     if candidate.current_status in [CandidateStatus.PENDING, CandidateStatus.RESUBMIT]:
 
         if candidate.assessment.current_status in [
@@ -48,13 +46,13 @@ def assessment_view(pk: str):
         form = CandidateAssessmentForm()
 
         if form.validate_on_submit():
-            media_name = generate_media_name(form.media.data.filename)
-            form.media.data.save(
+            media_name = generate_media_name(form.submission.data.filename)
+            form.submission.data.save(
                 os.path.join(current_app.config['SUBMISSION_MEDIA'], media_name)
             )
 
             ctl = candidate.update_status(
-                CandidateStatus.SUBMITTED,
+                status=CandidateStatus.SUBMITTED,
                 details='Candidate submitted work.'
             )
 
@@ -65,6 +63,11 @@ def assessment_view(pk: str):
             flash('Submitted successfully!')
             return redirect(url_for('candidate.assessment_view', pk=candidate.id))
 
+        else:
+            for fieldName, errorMessages in form.errors.items():
+                for err in errorMessages:
+                    flash(err, 'error')
+
         return render_template(
             "candidate/assessment.html",
             title='Candidate Assessment',
@@ -72,6 +75,7 @@ def assessment_view(pk: str):
             client_session=client_session,
             form=form
         )
+
 
     return render_template(
         "candidate/assessment.html",

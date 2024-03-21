@@ -31,4 +31,4 @@ def terminate(pk):
     db.session.add(cs_tl)
     db.session.commit()
 
-    return redirect(url_for('session.session', session_id=pk))
+    return redirect(url_for('sessions.session', session_id=pk))

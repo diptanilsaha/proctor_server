@@ -27,16 +27,17 @@
             <h5>Instruction/Description</h5>
             <p>{{ candidate.assessment.description }}</p>
 
-            <a href="" class="btn btn-dark mb-3"><strong>Download Question Paper</strong></a>
+            <a href="{{ url_for('candidate.assessment_media', filename=candidate.assessment.media) }}" class="btn btn-dark mb-3"><strong>Download Question Paper</strong></a>
 
             {% if candidate.current_status.name == 'SUBMITTED' or candidate.current_status.name == 'VERIFIED' %}
-            <a href="" class="btn btn-success mb-3"><strong>View your work</strong></a>
+            <a href="{{ url_for('candidate.submission_file', filename=candidate.submission_media_url) }}" class="btn btn-success mb-3"><strong>View your work</strong></a>
             {% endif %}
 
             {% if form is defined %}
             <div class="px-5 py-4 border rounded">
                 <h3>Turn in your work</h3>
-                <form action="{{ url_for('candidate.assessment_view', pk=candidate.id) }}" method="post">
+                <form action="{{ url_for('candidate.assessment_view', pk=candidate.id) }}" method="post" enctype="multipart/form-data">
+                    {{ form.csrf_token }}
                     <div class="mb-3">
                         {{ form.submission.label(class_="form-label") }}
                         {{ form.submission(class_="shadow-sm w-100 form-control", accept=".zip,.rar,.7zip")}}
