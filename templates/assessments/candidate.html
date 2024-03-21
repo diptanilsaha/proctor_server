@@ -6,7 +6,7 @@
 <div class="container mt-4 px-4">
     <!-- header -->
     <div class="d-flex justify-content-between align-items-center mx-4 mb-2">
-        <h1 class="mb-0"><strong>Assessments</strong></h1>
+        <h1 class="mb-0"><strong>Candidate</strong></h1>
     </div>
     <hr class="mt-0 mb-3">
     <!-- breadcrumb -->
@@ -45,7 +45,11 @@
                     <td>
                         {% if candidate.is_assigned %}
                         {{ candidate.client_session.client.name }}
+                        {% if candidate.assessment.current_status.value not in ['expire', 'complete'] %}
                         <a class="btn btn-outline-dark btn-sm" href="{{ url_for('assessments.assign', pk=candidate.id) }}">Reassign</a>
+                        {% else %}
+                        <a href="{{ url_for('sessions.session', session_id=candidate.client_session.id) }}" class="btn btn-outline-dark btn-sm">Go to Client Session</a>
+                        {% endif %}
                         {% if candidate.assessment.current_status.value in ['initial', 'registration'] %}
                         <a class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#removeModal">Remove assignment</a>
                         {% endif %}
