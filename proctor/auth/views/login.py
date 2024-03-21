@@ -14,6 +14,6 @@ def login():
         user = form.get_user()
         if user is not None and user.verify_password(form.password.data):
             login_user(user)
-            return redirect(url_for('labs.index'))
+            return redirect(url_for('clients.index'))
         flash("Invalid username or password.", 'error')
     return render_template("auth/login.html", form=form, title="Log In")

@@ -9,22 +9,23 @@
     <main class="form-login w-100 m-auto">
         <form action="{{ url_for('auth.login') }}" method="post">
             {{ form.csrf_token }}
-            <h1 class="mb-3 text-center"><strong>login</strong></h1>
+            <h1 class="mb-3 text-center"><strong>Login</strong></h1>
             {% import 'macros.html' as macros %}
             {{ macros.error(width='w-100') }}
             <div class="mb-3">
                 {{ form.username.label(class_="form-label") }}
-                {{ form.username(class_="shadow-sm w-100 form-control-lg", placeholder="lab1") }}
+                {{ form.username(class_="shadow-sm w-100 form-control form-control-lg", placeholder="lab1") }}
             </div>
             <div class="mb-4">
                 {{ form.password.label(class_="form-label") }}
-                {{ form.password(class_="shadow-sm w-100 form-control-lg", placeholder="password") }}
+                {{ form.password(class_="shadow-sm w-100 form-control form-control-lg", placeholder="password") }}
             </div>
             <div class="w-100 d-flex justify-content-center mb-4">
                 <button class="btn btn-dark" type="submit"><strong>log in</strong></button>
             </div>
-            <div class="text-center">
-                <p>&copy;2024, Proctor</p>
+            <div class="w-100 text-center">
+                <p class="mb-0 lead">Proctor</p>
+                <p><strong>{{ config['INSTITUTE_NAME'] }}</strong></p>
             </div>
         </form>
     </main>
