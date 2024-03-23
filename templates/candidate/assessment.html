@@ -19,15 +19,15 @@
         <div class="w-75 mx-auto px-2">
             <div class="d-flex justify-content-between align-items-center">
                 <h2 class="mb-0">{{ candidate.assessment.title }}</h2>
-                <div class="py-1 px-2 border border-dark rounded text-white" style="background-color: rgb(48, 183, 14);">
-                    <strong>VERIFIED</strong>
+                <div class="py-1 px-2 border border-dark rounded" id="candidateStatus">
+                    <strong>{{ candidate.current_status.name }}</strong>
                 </div>
             </div>
             <hr>
             <h5>Instruction/Description</h5>
             <p>{{ candidate.assessment.description }}</p>
 
-            <a href="{{ url_for('candidate.assessment_media', filename=candidate.assessment.media) }}" class="btn btn-dark mb-3"><strong>Download Question Paper</strong></a>
+            <a href="{{ url_for('candidate.assessment_media', filename=candidate.assessment.media) }}" class="btn btn-dark mb-3"><strong>Download Reference Material</strong></a>
 
             {% if candidate.current_status.name == 'SUBMITTED' or candidate.current_status.name == 'VERIFIED' %}
             <a href="{{ url_for('candidate.submission_file', filename=candidate.submission_media_url) }}" class="btn btn-success mb-3"><strong>View your work</strong></a>
@@ -46,7 +46,51 @@
                 </form>
             </div>
             {% endif %}
+
+            {% if candidate.current_status.name == 'VERIFIED' %}
+            <div class="px-5 py-4 border rounded">
+                <h3>Submission Verified.</h3>
+                <p>Dear Candidate, your submission has been verified. You can proceed to leave this PC.</p>
+                <p>Thank You.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </main>
+{% endblock %}
+
+{% block js_script %}
+<script>
+    function reloadSite(data) {
+        const status = document.getElementById('candidateStatus')
+        if(data.hasOwnProperty('assessment')) {
+            if(status.innerText !== data['assessment']['currentStatus']) {
+                location.reload()
+            }
+        } else {
+            location.reload()
+        }
+    }
+
+    function fetchStatus() {
+        fetch('data')
+            .then(function(response) {
+                return response.json()
+            })
+            .then(function(data) {
+                reloadSite(data)
+            })
+            .catch(function(err){
+                console.log('error: ' + err)
+            });
+    }
+
+    window.addEventListener('load', function () {
+        // Your document is loaded.
+        var fetchInterval = 3000; // 5 seconds.
+
+        // Invoke the request every 5 seconds.
+        setInterval(fetchStatus, fetchInterval);
+    });
+</script>
 {% endblock %}

@@ -1,5 +1,5 @@
 import os
-from flask import flash, redirect, url_for, request, render_template, current_app
+from flask import flash, redirect, url_for, request, render_template, current_app, jsonify
 from sqlalchemy import and_
 from proctor.models import (
     ClientSession,
@@ -84,6 +84,32 @@ def assessment_view(pk: str):
         client_session=client_session,
     )
 
+@candidate_bp.route('/<pk>/data/', methods=['GET', 'POST'])
+def assessment_data(pk: str):
+    client_session = _get_remote_client(request.remote_addr)
+
+    if not client_session:
+        return jsonify({
+            'status': 'error'
+        }), 400
+
+    candidate = db.get_or_404(Candidate, pk)
+
+    verify = _verify_client_session_and_assessment(
+        candidate.assessment, client_session
+    )
+
+    if verify:
+        flash(verify, 'error')
+        return redirect(url_for('candidate.index'))
+
+    data = {
+        'assessment': {
+            'currentStatus': candidate.current_status.name
+        }
+    }
+
+    return jsonify(data), 200
 
 def _get_remote_client(ip_addr: str) -> None | ClientSession:
     client_session: ClientSession = db.session.execute(
