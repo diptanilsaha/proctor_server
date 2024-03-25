@@ -12,20 +12,17 @@ from .disconnect import deactivate_client_session
 
 @socketio.on('connect')
 def connect(auth):
-    client = get_client_from_token(auth['token'])
+    client = get_client_from_token(auth)
 
     if client is None:
         raise ConnectionRefusedError('Token not valid.')
-
-    if not validate_ip_address(auth['ip_address']):
-        raise ConnectionRefusedError('IP Address not valid.')
 
     if client.is_active:
         client_session = client.client_sessions[0]
         deactivate_client_session(client_session, reconnection=True)
 
     client_session = ClientSession()
-    client_session.session_ip_addr = auth['ip_address']
+    client_session.session_ip_addr = request.remote_addr
     client_session.session_id = request.sid
     client_session.client = client
 
