@@ -6,7 +6,6 @@ from proctor.models import (
     ClientSessionTimeline,
     ClientSessionTLStatus
 )
-from proctor.utils import validate_ip_address
 from proctor.websocketio.utils import get_client_from_token
 from .disconnect import deactivate_client_session
 
