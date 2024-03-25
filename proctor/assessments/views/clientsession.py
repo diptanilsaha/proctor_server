@@ -37,7 +37,8 @@ def assign(pk):
     active_client_sessions: List[ClientSession] = db.session.execute(
         db.select(ClientSession).join(subq, ClientSession.client_id == subq.c.id).where(
             ClientSession.is_active == True,
-            ClientSession.candidate_id == None
+            ClientSession.candidate_id == None,
+            ClientSession.can_terminate == False
         )
     ).scalars().all()
 
