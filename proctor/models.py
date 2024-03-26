@@ -59,7 +59,7 @@ class User(UserMixin, db.Model):
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     username: Mapped[str] = mapped_column(
         db.String(10), unique=True, nullable=False)
-    password_hash: Mapped[str] = mapped_column(db.String(128))
+    password_hash: Mapped[str] = mapped_column(db.String(256))
     role_id: Mapped[int] = mapped_column(ForeignKey("role.id"))
     role: Mapped["Role"] = relationship(back_populates="users")
     lab_id: Mapped[Optional[int]] = mapped_column(ForeignKey("lab.id"))

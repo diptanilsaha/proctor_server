@@ -11,7 +11,7 @@ from .models import (
 def expire_assessments_job():
     with db.app.app_context():
         robot_user = db.session.execute(
-            db.select(User).filter_by(username='proctor_bot')
+            db.select(User).filter_by(username='proctorBot')
         ).scalar_one_or_none()
         assessments: List[Assessment] = db.session.execute(
             db.select(Assessment).filter(
