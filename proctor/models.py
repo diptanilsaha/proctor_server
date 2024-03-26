@@ -35,7 +35,7 @@ class Role(db.Model):
     __tablename__ = "role"
     id: Mapped[int] = mapped_column(db.Integer, primary_key=True)
     name: Mapped[str] = mapped_column(
-        db.String(12), unique=True, nullable=False)
+        db.String(20), unique=True, nullable=False)
     users: Mapped[List["User"]] = relationship(back_populates="role")
 
     @staticmethod
