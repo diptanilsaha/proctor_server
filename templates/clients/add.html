@@ -27,12 +27,12 @@
                 {% import 'macros.html' as macros %}
                 {{ macros.error() }}
                 <div class="mb-3">
-                    {{ form.name.label(class_="form-label") }}
-                    {{ form.name(class_="shadow-sm w-100 form-control-lg border border-secondary", placeholder="LAB1_01") }}
+                    {{ form.lab.label(class_="form-label") }}
+                    {{ form.lab(class_="shadow-sm w-100 form-select form-select-lg") }}
                 </div>
                 <div class="mb-4">
-                    {{ form.lab.label(class_="form-label") }}
-                    {{ form.lab(class_="shadow-sm w-100 form-select form-select-lg border border-secondary") }}
+                    {{ form.name.label(class_="form-label") }}
+                    {{ form.name(class_="shadow-sm w-100 form-control form-control-lg", placeholder="LAB1_01") }}
                 </div>
                 <div class="w-100 d-flex justify-content-center mb-4">
                     <button class="btn btn-dark btn-lg" type="submit"><strong>Add Client</strong></button>
