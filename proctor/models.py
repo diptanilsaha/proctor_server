@@ -257,7 +257,7 @@ class Assessment(db.Model):
     )
     title: Mapped[str] = mapped_column(db.String(50), nullable=False)
     description: Mapped[str] = mapped_column(db.Text)
-    media: Mapped[str] = mapped_column(db.String(32))
+    media: Mapped[str] = mapped_column(db.String(50))
     current_status: Mapped[AssessmentStatus] = mapped_column(
         default=AssessmentStatus.INIT
     )
