@@ -41,13 +41,13 @@ def create_roles_and_users():
 
     robot_user = db.session.execute(
         db.select(User).filter_by(
-            username = "proctor_bot"
+            username = "proctorBot"
         )
     ).scalar_one_or_none()
 
     if robot_user is None:
         robot_user = User()
-        robot_user.username = "proctor_bot"
+        robot_user.username = "proctorBot"
         robot_user.set_password(secrets.token_hex(16))
         robot_user.role = robot_role
         db.session.add(robot_user)
