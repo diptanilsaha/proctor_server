@@ -8,4 +8,4 @@ from proctor.auth.base import auth_bp
 def logout():
     """Logout User."""
     logout_user()
-    return redirect('/')
+    return redirect(url_for('auth.login'))
