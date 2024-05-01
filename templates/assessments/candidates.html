@@ -56,7 +56,7 @@
                     <th scope="col">Roll</th>
                     <th scope="col">Name</th>
                     <th scope="col">Current Status</th>
-                    <th scope="col">Assigned</th>
+                    <th scope="col">Assigned on</th>
                 </tr>
             </thead>
             <tbody>
@@ -68,7 +68,7 @@
                     <td>{{ candidate.name }}</td>
                     <td>{{ candidate.current_status.name }}</td>
                     {% if candidate.is_assigned %}
-                    <td>{{ candidate.client_session.client.clientname }}</td>
+                    <td>{{ candidate.client_session.client.name }}</td>
                     {% else %}
                     <td>Not Assigned</td>
                     {% endif %}
